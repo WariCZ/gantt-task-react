@@ -1,0 +1,563 @@
+._ganttTable_Header_1ndeo_1 {
+  display: table;
+  border-bottom: #e6e4e4 3px solid;
+  border-top: #e6e4e4 3px solid;
+  box-sizing: content-box;
+}
+
+._ganttTable_HeaderSeparator_1ndeo_15 {
+  border-right: 1px solid rgb(196, 196, 196);
+  opacity: 1;
+  margin-left: -2px;
+}
+
+
+._ganttTable_HeaderContent_1ndeo_29 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+._ganttTable_HeaderTitle_1ndeo_41 {
+
+}
+
+._ganttTable_HeaderItem_1ndeo_49 {
+  position: relative;
+  box-sizing: border-box;
+  overflow: hidden;
+  padding-left: 5px;
+  padding-right: 5px;
+  display: table-cell;
+  vertical-align: -webkit-baseline-middle;
+  vertical-align: middle;
+}
+
+
+
+._resizer_1ndeo_75 {
+  position: absolute;
+  top: 0;
+  right: -5px;
+  height: 100%;
+  width: 10px;
+  cursor: ew-resize;
+  user-select: none;
+}
+._ganttTable_HeaderItem_1ndeo_49:last-child ._resizer_1ndeo_75 {
+  width: 5px;
+  right: 5px;
+}
+
+._resizer_1ndeo_75:hover {
+  background-color: grey;
+}
+
+._taskListHeaderAction_wxi5f_1 {
+
+}
+._taskListTableRow_1e35i_1 {
+  position: relative;
+  display: table-row;
+  text-overflow: ellipsis;
+  cursor:grab
+}
+._taskListTableRowGrabbing_1e35i_13 {
+  cursor:grabbing
+}
+
+._cut_1e35i_21 {
+  opacity: 0.3;
+}
+
+._taskListCell_1e35i_29 {
+  box-sizing: border-box;
+  display: table-cell;
+  vertical-align: middle;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding-left: 5px;
+}
+._taskListCellInner_1e35i_47 {
+  display: flex;
+  align-items: center;
+}
+
+._dropAfter_1e35i_57 {
+  position: absolute;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  bottom: 0px;
+  left: 0;
+  width: 100%;
+  height: 8px;
+  color: transparent;
+}
+
+._dropAfterLighten_1e35i_81 {
+  border-radius: 6px;
+}
+
+._dropAfter_1e35i_57::before {
+  content: "";
+  width: 12px;
+  height: 12px;
+  border-radius: 6px;
+  background-color: currentColor;
+}
+
+._dropBefore_1e35i_105 {
+  position: absolute;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  top:0px;
+  width: 100%;
+  height: 8px;
+  color: transparent;
+}
+
+._dropBeforeLighten_1e35i_127 {
+  border-radius: 6px;
+}
+
+._dropBefore_1e35i_105::before {
+  content: "";
+  width: 12px;
+  height: 12px;
+  border-radius: 6px;
+  background-color: currentColor;
+}
+._taskListWrapper_5941j_1 {
+  display: table;
+}
+._tooltipDefaultContainer_qip67_1 {
+  background: #fff;
+  padding: 12px;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+}
+
+._tooltipDefaultContainerParagraph_qip67_13 {
+  font-size: 12px;
+  margin-bottom: 6px;
+  color: #666;
+}
+
+._tooltipDetailsContainer_qip67_25 {
+  position: absolute;
+  display: flex;
+  flex-shrink: 0;
+  pointer-events: none;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+._tooltipDetailsContainerHidden_qip67_49 {
+  visibility: hidden;
+  position: absolute;
+  display: flex;
+  pointer-events: none;
+}
+._ganttTableRoot_1ogga_1 {
+  display:flex;
+  position: relative;
+  border-left: #e6e4e4 1px solid;
+  overflow: hidden;
+}
+
+._ganttTableWrapper_1ogga_15 {
+  display: grid;
+  overflow: hidden;
+  grid-template-rows: min-content;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+._ganttTableWrapper_1ogga_15::-webkit-scrollbar {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
+._ganttTableWrapper_1ogga_15::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+._ganttTableWrapper_1ogga_15::-webkit-scrollbar-thumb {
+  border: 6px solid transparent;
+  background: rgba(0, 0, 0, 0.2);
+  background: var(--palette-black-alpha-20, rgba(0, 0, 0, 0.2));
+  border-radius: 10px;
+  background-clip: padding-box;
+}
+
+._ganttTableWrapper_1ogga_15::-webkit-scrollbar-thumb:hover {
+  border: 4px solid transparent;
+  background: rgba(0, 0, 0, 0.3);
+  background: var(--palette-black-alpha-30, rgba(0, 0, 0, 0.3));
+  background-clip: padding-box;
+}
+
+._taskListResizer_1ogga_79 {
+  position: absolute;
+  top: 0;
+  right: -5px;
+  height: 100%;
+  width: 10px;
+  cursor: ew-resize;
+  user-select: none;
+}
+
+._taskListResizer_1ogga_79:hover {
+  background-color: grey;
+}
+
+._taskListResizer_1ogga_79::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 4px;
+  height: 100%;
+  width: 2px;
+  background-color: #e5e5e5;
+}
+
+._taskListContent_1ogga_127 {
+  overflow-x: hidden;
+  overflow-y: auto;
+  position: relative;
+  /* scrollbar-width: thin; */
+}
+._taskListContent_1ogga_127::-webkit-scrollbar {
+  display: none;
+}
+
+._hidden_1ogga_147 {
+  display: none;
+}
+._button_1eue5_1 {
+  margin: 0;
+  padding: 5px;
+  border: none;
+  outline: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 20px;
+  font-weight: bold;
+}
+._taskListNameWrapper_1un0e_1 {
+  display: flex;
+  align-items: center;
+}
+
+._dragging_1un0e_11 {
+  opacity: 0.5;
+}
+
+._taskListExpander_1un0e_19 {
+  opacity: 0.9;
+  font-size: 18px;
+  user-select: none;
+  cursor: pointer;
+  display: flex;
+}
+
+._taskListEmptyExpander_1un0e_35 {
+  user-select: none;
+  cursor: default;
+}
+
+._taskName_1un0e_45 {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+._button_1eue5_1 {
+  margin: 0;
+  padding: 5px;
+  border: none;
+  outline: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 20px;
+  font-weight: bold;
+}
+._button_ys66g_1 {
+  margin: 0;
+  padding: 5px;
+  border: none;
+  outline: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 20px;
+}
+._calendarMain_lemhx_1{    
+  border-top: #e6e4e4 3px solid;
+  border-bottom: #e6e4e4 3px solid;
+  box-sizing: content-box;
+}
+
+._calendarBottomText_lemhx_13 {
+  text-anchor: middle;
+  fill: #333;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  pointer-events: none;
+}
+
+._calendarTopTick_lemhx_35 {
+  stroke: #e6e4e4;
+}
+
+._calendarTopText_lemhx_43 {
+  text-anchor: middle;
+  fill: #555;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  pointer-events: none;
+}
+
+._calendarHeader_lemhx_65 {
+  fill: #ffffff;
+  stroke: #e0e0e0;
+  stroke-width: 1.4;
+}
+._hoverVisibleWrapper_11ld1_1:hover ._wrapper_11ld1_1 {
+  display: initial;
+}
+
+._wrapper_11ld1_1 {
+  cursor: pointer;
+}
+
+._wrapper_11ld1_1:hover ._mainPath_11ld1_17 {
+  filter: drop-shadow(0px 0px 2px rgba(0, 0, 0, .7));
+}
+
+._mainPath_11ld1_17 {
+  fill: none;
+  stroke-width: 1.5px;
+}
+
+._clickZone_11ld1_35 {
+  fill: transparent;
+  stroke: transparent;
+}
+._arrow_clickable_1k55i_1 {
+  cursor: pointer;
+}
+
+._arrow_clickable_1k55i_1:hover ._mainPath_1k55i_9 {
+  filter: drop-shadow(0px 0px 2px rgba(0, 0, 0, .7));
+}
+
+._mainPath_1k55i_9 {
+  fill: none;
+  stroke-width: 1.5px;
+}
+
+._clickZone_1k55i_27 {
+  fill: none;
+  stroke: transparent;
+  stroke-width: 8px;
+}
+._relationLine_ftzm9_1 {
+  stroke: grey;
+  stroke-width: 2;
+  stroke-dasharray: 4;
+}
+._barWrapper_1kg71_1 {
+  cursor: pointer;
+  outline: none;
+}
+
+._barWrapper_1kg71_1:hover ._barHandle_1kg71_11 {
+  visibility: visible;
+  opacity: 1;
+}
+
+._barHandle_1kg71_11 {
+  fill: #ddd;
+  cursor: ew-resize;
+  opacity: 0;
+  visibility: hidden;
+}
+
+._barHandle_1kg71_11:hover {
+  fill: #a2a2a2;
+}
+
+._barBackground_1kg71_43 {
+  user-select: none;
+  stroke-width: 0;
+}
+._barRelationHandleWrapper_1744h_1:hover ._barRelationHandle_1744h_1, ._barRelationHandle_1744h_1._barRelationHandle_drawMode_1744h_1 {
+  opacity: 1;
+}
+
+._barRelationHandle_1744h_1 {
+  fill: #ddd;
+  stroke: #333;
+  cursor: pointer;
+  opacity: 0;
+}
+
+._barRelationHandle_1744h_1:hover {
+  fill: #a2a2a2;
+}
+._projectWrapper_1maxt_1 {
+  cursor: pointer;
+  outline: none;
+}
+
+._projectBackground_1maxt_11 {
+  user-select: none;
+  opacity: 0.6;
+}
+
+._projectTop_1maxt_21 {
+  user-select: none;
+}
+._milestoneWrapper_vcirf_1 {
+  cursor: pointer;
+  outline: none;
+}
+
+._milestoneBackground_vcirf_11 {
+  user-select: none;
+}
+._barLabel_y0tyg_1 {
+  text-anchor: middle;
+  font-weight: lighter;
+  dominant-baseline: central;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  pointer-events: none;
+}
+
+._barLabelOutside_y0tyg_25 {
+  text-anchor: start;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  pointer-events: none;
+}
+._hoverVisibleWrapper_11ld1_1:hover ._wrapper_11ld1_1 {
+  display: initial;
+}
+
+._wrapper_11ld1_1 {
+  cursor: pointer;
+}
+
+._wrapper_11ld1_1:hover ._mainPath_11ld1_17 {
+  filter: drop-shadow(0px 0px 2px rgba(0, 0, 0, .7));
+}
+
+._mainPath_11ld1_17 {
+  fill: none;
+  stroke-width: 1.5px;
+}
+
+._clickZone_11ld1_35 {
+  fill: transparent;
+  stroke: transparent;
+}
+._ganttTaskRoot_1g0yd_1 {
+  display:flex;
+  flex-direction: column;
+  overflow-x: scroll;
+  overflow-y: hidden;
+  font-size: 0;
+  margin: 0;
+  padding: 0;
+}
+/* Only chrome otherwise the firefox scrollbar has no edge*/
+@media screen and (-webkit-min-device-pixel-ratio:0) and (min-resolution:.001dpcm) {
+  ._ganttTaskRoot_1g0yd_1 {
+    scrollbar-width: thin;
+  }
+}
+
+/* .ganttTaskRoot::-webkit-scrollbar {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
+.ganttTaskRoot::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+.ganttTaskRoot::-webkit-scrollbar-thumb {
+  border: 6px solid transparent;
+  background: rgba(0, 0, 0, 0.2);
+  background: var(--palette-black-alpha-20, rgba(0, 0, 0, 0.2));
+  border-radius: 10px;
+  background-clip: padding-box;
+}
+
+.ganttTaskRoot::-webkit-scrollbar-thumb:hover {
+  border: 4px solid transparent;
+  background: rgba(0, 0, 0, 0.3);
+  background: var(--palette-black-alpha-30, rgba(0, 0, 0, 0.3));
+  background-clip: padding-box;
+} */
+
+._ganttTaskContent_1g0yd_81 {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+/* Only chrome otherwise the firefox scrollbar has no edges*/
+@media screen and (-webkit-min-device-pixel-ratio:0) and (min-resolution:.001dpcm) {
+  ._ganttTaskContent_1g0yd_81 {
+    scrollbar-width: thin;
+  }
+}
+
+._wrapper_1g0yd_107 {
+  display:grid;
+  overflow-x: hidden;
+  overflow-y: hidden;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+  outline: none;
+  position: relative;
+}
+._menuOption_z7pb4_1 {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background-color: #fff;
+  cursor: pointer;
+  padding: 5px;
+}
+
+._menuOption_z7pb4_1:hover {
+  background-color: #eeeeee;
+}
+
+._icon_z7pb4_27 {
+  width: 30px;
+}
+
+._label_z7pb4_35 {
+  flex: 1;
+}
