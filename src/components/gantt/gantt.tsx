@@ -86,7 +86,7 @@ import { useHolidays } from "./use-holidays";
 
 import styles from "./gantt.module.css";
 
-const defaultColors: ColorStyles = {
+export const defaultColors: ColorStyles = {
   arrowColor: "grey",
   arrowCriticalColor: "#ff0000",
   arrowWarningColor: "#ffbc00",
@@ -129,6 +129,8 @@ const defaultColors: ColorStyles = {
   contextMenuBoxShadow: "rgb(0 0 0 / 25%) 1px 1px 5px 1px",
   contextMenuBgColor: "#fff",
   contextMenuTextColor: "inherit",
+  selectedDayBgColor: "rgba(200, 162, 200, 0.3)",
+  selectedDayStrokeColor: "#c8a2c8",
 };
 
 const defaultDateFormats: DateFormats = {
@@ -140,7 +142,7 @@ const defaultDateFormats: DateFormats = {
   monthTopHeaderFormat: "LLLL",
 };
 
-const defaultDistances: Distances = {
+export const defaultDistances: Distances = {
   actionColumnWidth: 40,
   arrowIndent: 20,
   barCornerRadius: 3,
@@ -183,6 +185,7 @@ export const Gantt: React.FC<GanttProps> = ({
   canMoveTasks = true,
   canResizeColumns = true,
   checkIsHoliday: checkIsHolidayProp = defaultCheckIsHoliday,
+  selectedDay,
   colors = defaultColors,
   columns: columnsProp = undefined,
   comparisonLevels = 1,
@@ -239,6 +242,7 @@ export const Gantt: React.FC<GanttProps> = ({
   const ganttSVGRef = useRef<SVGSVGElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const taskListRef = useRef<HTMLDivElement>(null);
+  const targetScrollIndexRef = useRef<number | null>(null);
 
   const { contextMenu, handleCloseContextMenu, handleOpenContextMenu } =
     useContextMenu(wrapperRef);
@@ -268,6 +272,7 @@ export const Gantt: React.FC<GanttProps> = ({
   const [currentViewDate, setCurrentViewDate] = useState<Date | undefined>(
     undefined
   );
+  const [virtualRightCols, setVirtualRightCols] = useState(0);
 
   const [sortedTasks, setSortedTasks] = useState<TaskOrEmpty[]>(() =>
     [...tasks].sort(sortTasks)
@@ -436,10 +441,12 @@ export const Gantt: React.FC<GanttProps> = ({
     selectedIdsMirror,
   } = useSelection(taskToRowIndexMap, rowIndexToTaskMap, checkTaskIdExists);
 
-  const [startDate, minTaskDate, datesLength] = useMemo(
+  const [startDate, minTaskDate, baseDatesLength] = useMemo(
     () => ganttDateRange(visibleTasks, viewMode, preStepsCount),
     [visibleTasks, viewMode, preStepsCount]
   );
+
+  const datesLength = baseDatesLength + virtualRightCols;
 
   const getDate = useCallback(
     (index: number) => getDateByOffset(startDate, index, viewMode),
@@ -466,7 +473,19 @@ export const Gantt: React.FC<GanttProps> = ({
   );
 
   const { checkIsHoliday, adjustTaskToWorkingDates } = useHolidays({
-    checkIsHolidayProp,
+    checkIsHolidayProp: (date, minTaskDate, dateSetup, dateExtremity) => {
+      if (checkIsHolidayProp?.(date, minTaskDate, dateSetup, dateExtremity)) {
+        return true;
+      }
+
+      if (selectedDay) {
+        const d1 = date.toISOString().slice(0, 10);
+        const d2 = selectedDay.toISOString().slice(0, 10);
+        return d1 === d2;
+      }
+
+      return false;
+    },
     dateSetup,
     isAdjustToWorkingDates,
     minTaskDate,
@@ -480,6 +499,7 @@ export const Gantt: React.FC<GanttProps> = ({
       distances.columnWidth,
     [datesLength, distances]
   );
+
   const renderedColumnIndexes = useOptimizedList(
     ganttTaskRootRef,
     "scrollLeft",
@@ -487,6 +507,74 @@ export const Gantt: React.FC<GanttProps> = ({
   );
 
   const svgClientWidth = renderedColumnIndexes && renderedColumnIndexes[4];
+
+  useEffect(() => {
+    if (!svgClientWidth) return;
+
+    const thresholdPx = 6 * distances.columnWidth;
+    const nearRightEdge = scrollX + svgClientWidth > svgWidth - thresholdPx;
+    if (!nearRightEdge) return;
+
+    const CHUNK_BY_MODE: Record<ViewMode, number> = {
+      [ViewMode.Hour]: 24 * 7,
+      [ViewMode.QuarterDay]: 4 * 30,
+      [ViewMode.HalfDay]: 2 * 30,
+      [ViewMode.Day]: 90,
+      [ViewMode.TwoDays]: 90,
+      [ViewMode.Week]: 52,
+      [ViewMode.Month]: 24,
+      [ViewMode.QuarterYear]: 12,
+      [ViewMode.Year]: 10,
+    };
+
+    setVirtualRightCols(v => v + (CHUNK_BY_MODE[viewMode] || 52));
+  }, [scrollX, svgClientWidth, svgWidth, distances.columnWidth, viewMode]);
+
+  useEffect(() => {
+    if (!viewDate) return;
+
+    const index = getDatesDiff(viewDate, startDate, viewMode);
+    if (index < 0) return;
+
+    const currentTotal = baseDatesLength + virtualRightCols;
+
+    const BUFFER_COLS = 4;
+
+    if (index + BUFFER_COLS > currentTotal) {
+      const needExtra = index + BUFFER_COLS - baseDatesLength;
+      if (needExtra > virtualRightCols) {
+        setVirtualRightCols(needExtra);
+      }
+      targetScrollIndexRef.current = index;
+      return;
+    }
+    setScrollXProgrammatically(distances.columnWidth * index);
+  }, [
+    viewDate,
+    startDate,
+    viewMode,
+    baseDatesLength,
+    virtualRightCols,
+    distances.columnWidth,
+    setScrollXProgrammatically,
+  ]);
+
+  useEffect(() => {
+    if (targetScrollIndexRef.current == null) return;
+
+    const idx = targetScrollIndexRef.current;
+    const currentTotal = baseDatesLength + virtualRightCols;
+
+    if (idx < currentTotal) {
+      setScrollXProgrammatically(distances.columnWidth * idx);
+      targetScrollIndexRef.current = null; // очистить цель
+    }
+  }, [
+    baseDatesLength,
+    virtualRightCols,
+    distances.columnWidth,
+    setScrollXProgrammatically,
+  ]);
 
   const countTaskCoordinates = useCallback(
     (task: Task) =>
@@ -1742,6 +1830,9 @@ export const Gantt: React.FC<GanttProps> = ({
     checkIsHoliday,
     getDate,
     minTaskDate,
+    selectedDay,
+    selectedDayBgColor: colorStyles.selectedDayBgColor,
+    selectedDayStrokeColor: colorStyles.selectedDayStrokeColor,
   };
 
   const calendarProps: CalendarProps = useMemo<CalendarProps>(

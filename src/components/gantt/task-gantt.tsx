@@ -142,6 +142,7 @@ const TaskGanttInner: React.FC<TaskGanttProps> = (props) => {
   const [anchorEl, setAnchorEl] = React.useState<null | SVGElement>(null);
   const [selectedTask, setSelectedTask] = React.useState<Task>(null);
   const open = Boolean(anchorEl);
+  
   const onClickTask: (
     task: Task,
     event: React.MouseEvent<SVGElement>

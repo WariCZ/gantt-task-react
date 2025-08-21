@@ -4,6 +4,7 @@ import { ViewMode } from "../../types/public-types";
 import { differenceInDays } from "date-fns";
 
 export type GridProps = GridBodyProps;
+
 export const Grid: React.FC<GridProps> = props => {
   const {
     viewMode,
@@ -16,6 +17,10 @@ export const Grid: React.FC<GridProps> = props => {
     checkIsHoliday,
     holidayBackgroundColor,
     minTaskDate,
+
+    selectedDay,
+    selectedDayBgColor,
+    selectedDayStrokeColor,
   } = props;
 
   const viewModesForDetectHolidays = new Set([
@@ -54,13 +59,13 @@ export const Grid: React.FC<GridProps> = props => {
               x={additionalLeftSpace + i * columnWidth}
               y={0}
               fill={holidayBackgroundColor}
-              key={i}
+              key={`hol-${i}`}
+              pointerEvents="none"
             />
           );
         }
       }
     }
-
     return res;
   }, [
     viewMode,
@@ -71,11 +76,60 @@ export const Grid: React.FC<GridProps> = props => {
     endColumnIndex,
     getDate,
     holidayBackgroundColor,
+    minTaskDate,
+  ]);
+
+  const renderedSelectedDay = useMemo(() => {
+    if (!selectedDay) return null;
+
+    // нормализуем выбранную дату (без времени), чтобы не ловить проблемы с TZ
+    const sd = new Date(
+      selectedDay.getFullYear(),
+      selectedDay.getMonth(),
+      selectedDay.getDate()
+    );
+
+    const res: ReactNode[] = [];
+    // важно идти до endColumnIndex - 1, чтобы был i+1
+    for (let i = startColumnIndex; i < endColumnIndex; ++i) {
+      const colStart = getDate(i);
+      const colEnd = getDate(i + 1);
+
+      // попадает ли выбранная дата внутрь интервала колонки?
+      const inBucket =
+        sd.getTime() >= colStart.getTime() && sd.getTime() < colEnd.getTime();
+      if (!inBucket) continue;
+
+      res.push(
+        <rect
+          key={`sel-${i}`}
+          height="100%"
+          width={columnWidth}
+          x={additionalLeftSpace + i * columnWidth}
+          y={0}
+          fill={selectedDayBgColor}
+          stroke={selectedDayStrokeColor}
+          strokeWidth={1}
+          pointerEvents="none"
+        />
+      );
+    }
+    return res;
+  }, [
+    selectedDay,
+    startColumnIndex,
+    endColumnIndex,
+    getDate,
+    columnWidth,
+    additionalLeftSpace,
+    selectedDayBgColor,
+    selectedDayStrokeColor,
   ]);
 
   return (
     <g className="grid">
       {renderedHolidays}
+      {renderedSelectedDay}
       <GridBody {...props} />
     </g>
   );

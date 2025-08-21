@@ -18,6 +18,9 @@ export type GridBodyProps = {
   checkIsHoliday: (date: Date, dateExtremity: DateExtremity) => boolean;
   getDate: (index: number) => Date;
   minTaskDate: Date;
+  selectedDay?: Date;
+  selectedDayBgColor: string;
+  selectedDayStrokeColor: string;
 };
 
 const GridBodyInner: React.FC<GridBodyProps> = ({

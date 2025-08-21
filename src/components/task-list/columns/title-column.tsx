@@ -11,17 +11,30 @@ const getExpanderSymbol = (
   icons: Partial<Icons> | undefined
 ) => {
   if (!hasChildren) {
-    return icons?.renderNoChildrenIcon ? icons.renderNoChildrenIcon(task) : "";
+    return icons?.renderNoChildrenIcon ? (
+      icons.renderNoChildrenIcon(task)
+    ) : (
+      <span style={{ color: "#6b7280" }}></span>
+    );
   }
 
   if (isClosed) {
-    return icons?.renderClosedIcon ? icons.renderClosedIcon(task) : "⊞";
+    return icons?.renderClosedIcon ? (
+      icons.renderClosedIcon(task)
+    ) : (
+      <span style={{ color: "#6b7280" }}>▶</span>
+    );
   }
 
-  return icons?.renderOpenedIcon ? icons.renderOpenedIcon(task) : "⊟";
+  return icons?.renderOpenedIcon ? (
+    icons.renderOpenedIcon(task)
+  ) : (
+    <span style={{ color: "#6b7280" }}>▼</span>
+  );
 };
+type MenuRenderer = React.ComponentType<{ task: TaskOrEmpty }>;
 
-export const TitleColumn: React.FC<ColumnProps> = (props) => {
+export const TitleColumn: React.FC<ColumnProps> = props => {
   const {
     data: {
       colors,
@@ -34,8 +47,12 @@ export const TitleColumn: React.FC<ColumnProps> = (props) => {
       indexStr,
       task,
       onExpanderClick,
-    }
-  } = props;
+      // onBurgerClick,
+      Menu,
+    },
+  } = props as ColumnProps & {
+    data: ColumnProps["data"] & { Menu?: MenuRenderer };
+  };
   const { name } = task;
 
   const expanderSymbol = getExpanderSymbol(task, hasChildren, isClosed, icons);
@@ -48,32 +65,70 @@ export const TitleColumn: React.FC<ColumnProps> = (props) => {
     }
   }, [onExpanderClick, task]);
 
+  // const onBurger = useCallback(
+  //   (e: React.MouseEvent) => {
+  //     e.stopPropagation();
+  //     if (task.type !== "empty") {
+  //       onBurgerClick?.(task);
+  //     }
+  //   },
+  //   [onBurgerClick, task]
+  // );
+
   return (
     <div
       data-testid={`title-table-cell-${name}`}
-      className={`${styles.taskListNameWrapper}`}
+      className={styles.taskListNameWrapper}
       style={{
-        paddingLeft: depth * nestedTaskNameOffset,
+        display: "flex",
+        alignItems: "center",
       }}
       title={title}
     >
+      {Menu ? (
+        <div
+          onClick={e => e.stopPropagation()}
+          className={styles.taskListBurger ?? ""}
+          aria-label="Open task menu"
+        >
+          <Menu task={task} />
+        </div>
+      ) : null}
+      {/* <button
+        type="button"
+        onClick={onBurger}
+        className={styles.taskListBurger ?? ""}
+        aria-label="Open task menu"
+      >
+        ☰
+      </button> */}
+
       <div
-        className={`${styles.taskListExpander} ${
-          !hasChildren ? styles.taskListEmptyExpander : ""
-        }`}
-        onClick={onClick}
         style={{
-          width: expandIconWidth,
+          display: "flex",
+          alignItems: "center",
+          paddingLeft: depth * nestedTaskNameOffset,
         }}
       >
-        {expanderSymbol}
-      </div>
-      <div style={{
-        color: colors.barLabelColor
-      }} className={styles.taskName}>
-        {isShowTaskNumbers && <b>{indexStr} </b>}
+        <div
+          className={`${styles.taskListExpander} ${
+            !hasChildren ? styles.taskListEmptyExpander : ""
+          }`}
+          onClick={onClick}
+          style={{
+            width: expandIconWidth,
+          }}
+        >
+          {expanderSymbol}
+        </div>
 
-        {name}
+        <div
+          style={{ color: colors.barLabelColor }}
+          className={styles.taskName}
+        >
+          {isShowTaskNumbers && <b>{indexStr} </b>}
+          {name}
+        </div>
       </div>
     </div>
   );

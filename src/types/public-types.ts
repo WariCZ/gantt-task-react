@@ -111,6 +111,8 @@ export interface ColorStyles {
   contextMenuBoxShadow: string;
   contextMenuBgColor: string;
   contextMenuTextColor: string;
+  selectedDayBgColor: string;
+  selectedDayStrokeColor: string;
 }
 
 /**
@@ -289,60 +291,60 @@ export type FixPosition = (
 
 export type OnChangeTasksAction =
   | {
-  type: "add_tasks";
-}
+      type: "add_tasks";
+    }
   | {
-  type: "date_change";
-}
+      type: "date_change";
+    }
   | {
-  type: "delete_relation";
-  payload: {
-    taskFrom: Task;
-    taskFromIndex: number;
-    taskTo: Task;
-    taskToIndex: number;
-  };
-}
+      type: "delete_relation";
+      payload: {
+        taskFrom: Task;
+        taskFromIndex: number;
+        taskTo: Task;
+        taskToIndex: number;
+      };
+    }
   | {
-  type: "delete_task";
-  payload: {
-    tasks: readonly TaskOrEmpty[];
-    taskIndexes: readonly number[];
-  };
-}
+      type: "delete_task";
+      payload: {
+        tasks: readonly TaskOrEmpty[];
+        taskIndexes: readonly number[];
+      };
+    }
   | {
-  type: "edit_task";
-}
+      type: "edit_task";
+    }
   | {
-  type: "fix_dependency_position";
-}
+      type: "fix_dependency_position";
+    }
   | {
-  type: "fix_end_position";
-}
+      type: "fix_end_position";
+    }
   | {
-  type: "fix_start_position";
-}
+      type: "fix_start_position";
+    }
   | {
-  type: "move_task_before";
-}
+      type: "move_task_before";
+    }
   | {
-  type: "move_task_after";
-}
+      type: "move_task_after";
+    }
   | {
-  type: "move_task_inside";
-}
+      type: "move_task_inside";
+    }
   | {
-  type: "progress_change";
-}
+      type: "progress_change";
+    }
   | {
-  type: "relation_change";
-}
+      type: "relation_change";
+    }
   | {
-  type: "expandState_change";
-  payload: {
-    changedTask: Task;
-  };
-};
+      type: "expandState_change";
+      payload: {
+        changedTask: Task;
+      };
+    };
 
 export type RelationKind =
   | "startToStart"
@@ -493,6 +495,7 @@ export interface DisplayOption {
    * Show numbers of tasks next to tasks
    */
   isShowTaskNumbers?: boolean;
+  selectedDay?: Date;
 }
 
 export interface Icons {
@@ -707,8 +710,10 @@ export interface TaskOutOfParentWarnings {
  *   },
  * }
  */
-export type ChildOutOfParentWarnings = Map<number,
-  Map<string, TaskOutOfParentWarnings>>;
+export type ChildOutOfParentWarnings = Map<
+  number,
+  Map<string, TaskOutOfParentWarnings>
+>;
 
 // comparison level -> task id -> expanded dependencies
 export type DependencyMap = Map<number, Map<string, ExpandedDependency[]>>;
@@ -818,6 +823,7 @@ export type ColumnData = {
   isClosed: boolean;
   isShowTaskNumbers: boolean;
   onExpanderClick: (task: Task) => void;
+  onBurgerClick?: (task: Task) => void;
   task: TaskOrEmpty;
   colors: Partial<ColorStyles>;
 };
@@ -841,47 +847,47 @@ export type OnResizeColumn = (
 ) => void;
 export type ChangeAction =
   | {
-  type: "add-childs";
-  parent: Task;
-  // comparison level -> task id
-  addedIdsMap: Map<number, Set<string>>;
-  addedChildsByLevelMap: ChildByLevelMap;
-  addedRootsByLevelMap: RootMapByLevel;
-  descendants: readonly TaskOrEmpty[];
-}
+      type: "add-childs";
+      parent: Task;
+      // comparison level -> task id
+      addedIdsMap: Map<number, Set<string>>;
+      addedChildsByLevelMap: ChildByLevelMap;
+      addedRootsByLevelMap: RootMapByLevel;
+      descendants: readonly TaskOrEmpty[];
+    }
   | {
-  type: "change";
-  task: TaskOrEmpty;
-}
+      type: "change";
+      task: TaskOrEmpty;
+    }
   | {
-  type: "change_start_and_end";
-  task: Task;
-  changedTask: Task;
-  originalTask: Task;
-}
+      type: "change_start_and_end";
+      task: Task;
+      changedTask: Task;
+      originalTask: Task;
+    }
   | {
-  type: "delete";
-  tasks: readonly TaskOrEmpty[];
-  // comparison level -> task id
-  deletedIdsMap: Map<number, Set<string>>;
-}
+      type: "delete";
+      tasks: readonly TaskOrEmpty[];
+      // comparison level -> task id
+      deletedIdsMap: Map<number, Set<string>>;
+    }
   | {
-  type: "move-before";
-  target: TaskOrEmpty;
-  taskForMove: TaskOrEmpty;
-}
+      type: "move-before";
+      target: TaskOrEmpty;
+      taskForMove: TaskOrEmpty;
+    }
   | {
-  type: "move-after";
-  target: TaskOrEmpty;
-  taskForMove: TaskOrEmpty;
-}
+      type: "move-after";
+      target: TaskOrEmpty;
+      taskForMove: TaskOrEmpty;
+    }
   | {
-  type: "move-inside";
-  parent: Task;
-  childs: readonly TaskOrEmpty[];
-  // comparison level -> task id
-  movedIdsMap: Map<number, Set<string>>;
-};
+      type: "move-inside";
+      parent: Task;
+      childs: readonly TaskOrEmpty[];
+      // comparison level -> task id
+      movedIdsMap: Map<number, Set<string>>;
+    };
 
 export type ChangeMetadata = [
   /**
