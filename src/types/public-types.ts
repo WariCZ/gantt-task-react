@@ -344,6 +344,9 @@ export type OnChangeTasksAction =
       payload: {
         changedTask: Task;
       };
+    }
+  | {
+      type: "date_change_cascade";
     };
 
 export type RelationKind =
@@ -391,6 +394,7 @@ export interface EventOption {
    */
   onDateChange?: OnDateChange;
   authorizedRelations?: RelationKind[];
+  cascadeDependencies?: boolean;
   /**
    * Invokes on click on fix element next to relation arrow
    */

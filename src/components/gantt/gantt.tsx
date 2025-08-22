@@ -238,6 +238,7 @@ export const Gantt: React.FC<GanttProps> = ({
   timeStep = 300000,
   viewDate,
   viewMode = ViewMode.Day,
+  cascadeDependencies = true,
 }) => {
   const ganttSVGRef = useRef<SVGSVGElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -1067,6 +1068,53 @@ export const Gantt: React.FC<GanttProps> = ({
     return newXStep;
   }, [distances, startDate, timeStep, viewMode]);
 
+  const collectCascadeSet = useCallback(
+    (root: Task): Task[] => {
+      const byId = new Map<string, Task>();
+      tasks.forEach(t => {
+        if (t.type !== "empty") byId.set(t.id, t as Task);
+      });
+
+      const dependents = new Map<string, string[]>();
+
+      tasks.forEach(t => {
+        if (t.type === "empty") return;
+        const deps = (t.dependencies ?? []) as Dependency[];
+        deps.forEach(({ sourceId }) => {
+          const arr = dependents.get(sourceId) ?? [];
+          arr.push(t.id);
+          dependents.set(sourceId, arr);
+        });
+      });
+
+      const res: Task[] = [];
+      const visited = new Set<string>();
+
+      const add = (t: Task) => {
+        if (!t || visited.has(t.id)) return;
+        visited.add(t.id);
+        res.push(t);
+
+        const level = t.comparisonLevel ?? 1;
+        const byLevel = childTasksMap.get(level);
+        const children = (byLevel?.get(t.id) ?? []).filter(
+          (c): c is Task => c.type !== "empty"
+        );
+        children.forEach(add);
+
+        const nextIds = dependents.get(t.id) ?? [];
+        nextIds.forEach(id => {
+          const n = byId.get(id);
+          if (n) add(n);
+        });
+      };
+
+      add(root);
+      return res;
+    },
+    [tasks, childTasksMap]
+  );
+
   const onDateChange = useCallback(
     (action: BarMoveAction, changedTask: Task, originalTask: Task) => {
       const adjustedTask = adjustTaskToWorkingDates({
@@ -1076,48 +1124,104 @@ export const Gantt: React.FC<GanttProps> = ({
         roundDate,
       });
 
-      const changeAction: ChangeAction =
-        action === "move"
-          ? {
-              type: "change_start_and_end",
-              task: adjustedTask,
-              changedTask,
-              originalTask,
-            }
-          : {
-              type: "change",
-              task: adjustedTask,
-            };
+      if (action !== "move" || !cascadeDependencies) {
+        const changeAction: ChangeAction =
+          action === "move"
+            ? {
+                type: "change_start_and_end",
+                task: adjustedTask,
+                changedTask,
+                originalTask,
+              }
+            : { type: "change", task: adjustedTask };
 
-      const [dependentTasks, taskIndexes, parents, suggestions] =
-        getMetadata(changeAction);
+        const [dependentTasks, taskIndexes, parents, suggestions] =
+          getMetadata(changeAction);
+        const taskIndex = taskIndexes[0].index;
 
-      const taskIndex = taskIndexes[0].index;
-
-      if (onDateChangeProp) {
-        onDateChangeProp(
+        onDateChangeProp?.(
           adjustedTask,
           dependentTasks,
           taskIndex,
           parents,
           suggestions
         );
+
+        if (onChangeTasks) {
+          const withSuggestions = prepareSuggestions(suggestions);
+          withSuggestions[taskIndex] = adjustedTask;
+          onChangeTasks(withSuggestions, { type: "date_change" });
+        }
+        return;
       }
 
+      const delta = adjustedTask.start.getTime() - originalTask.start.getTime();
+      const cascadeSet = collectCascadeSet(originalTask);
+
+      const draft = [...tasks];
+      const movedIdxs = new Set<number>();
+      const idxOf = (t: Task) => getTaskGlobalIndexByRef(t);
+
+      cascadeSet.forEach(t => {
+        const idx = idxOf(t);
+        if (idx >= 0) {
+          draft[idx] = {
+            ...t,
+            start: new Date(t.start.getTime() + delta),
+            end: new Date(t.end.getTime() + delta),
+          };
+          movedIdxs.add(idx);
+        }
+      });
+
+      const byIndex = new Map<number, OnDateChangeSuggestionType>();
+      const merge = (arr: readonly OnDateChangeSuggestionType[]) => {
+        arr.forEach(s => byIndex.set(s[3], s)); // [start, end, task, index]
+      };
+
+      const currentFromDraft = (t: Task): Task => {
+        const idx = idxOf(t);
+        return idx >= 0 ? (draft[idx] as Task) : t;
+      };
+
+      cascadeSet.forEach(t => {
+        const curr = currentFromDraft(t);
+        const [, , , sugg] = getMetadata({ type: "change", task: curr });
+        merge(sugg);
+      });
+
       if (onChangeTasks) {
-        const withSuggestions = prepareSuggestions(suggestions);
-        withSuggestions[taskIndex] = adjustedTask;
-        onChangeTasks(withSuggestions, {
-          type: "date_change",
+        const merged = Array.from(byIndex.values());
+        let next = prepareSuggestions(merged);
+
+        movedIdxs.forEach(idx => {
+          if (!byIndex.has(idx)) {
+            const t = next[idx] as Task;
+            next[idx] = {
+              ...t,
+              start: new Date(t.start.getTime() + delta),
+              end: new Date(t.end.getTime() + delta),
+            };
+          }
         });
+
+        const movedIdx = idxOf(originalTask);
+        if (movedIdx >= 0) next[movedIdx] = adjustedTask;
+
+        onChangeTasks(next, { type: "date_change" });
       }
     },
     [
       adjustTaskToWorkingDates,
+      cascadeDependencies,
+      collectCascadeSet,
       getMetadata,
-      prepareSuggestions,
       onChangeTasks,
       onDateChangeProp,
+      prepareSuggestions,
+      roundDate,
+      tasks,
+      getTaskGlobalIndexByRef,
     ]
   );
 
