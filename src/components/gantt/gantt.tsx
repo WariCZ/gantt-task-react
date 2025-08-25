@@ -1115,6 +1115,37 @@ export const Gantt: React.FC<GanttProps> = ({
     [tasks, childTasksMap]
   );
 
+  const fitParentsToChildren = (items: Task[]): Task[] => {
+    const byParent = new Map<string, { min: number; max: number }>();
+
+    for (const t of items) {
+      if (!t.parent) continue;
+      const rec = byParent.get(t.parent) ?? { min: Infinity, max: -Infinity };
+      const s = t.start.getTime();
+      const e = t.end.getTime();
+      if (s < rec.min) rec.min = s;
+      if (e > rec.max) rec.max = e;
+      byParent.set(t.parent, rec);
+    }
+
+    return items.map(t => {
+      if (t.type === "project") {
+        const bounds = byParent.get(t.id);
+        if (bounds) {
+          const ns = new Date(bounds.min);
+          const ne = new Date(bounds.max);
+          if (
+            t.start.getTime() !== ns.getTime() ||
+            t.end.getTime() !== ne.getTime()
+          ) {
+            return { ...t, start: ns, end: ne };
+          }
+        }
+      }
+      return t;
+    });
+  };
+
   const onDateChange = useCallback(
     (action: BarMoveAction, changedTask: Task, originalTask: Task) => {
       const adjustedTask = adjustTaskToWorkingDates({
@@ -1208,7 +1239,9 @@ export const Gantt: React.FC<GanttProps> = ({
         const movedIdx = idxOf(originalTask);
         if (movedIdx >= 0) next[movedIdx] = adjustedTask;
 
-        onChangeTasks(next, { type: "date_change" });
+        next = fitParentsToChildren(next as Task[]);
+
+        onChangeTasks(next, { type: "date_change_cascade" });
       }
     },
     [
