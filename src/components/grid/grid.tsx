@@ -17,7 +17,6 @@ export const Grid: React.FC<GridProps> = props => {
     checkIsHoliday,
     holidayBackgroundColor,
     minTaskDate,
-
     selectedDay,
     selectedDayBgColor,
     selectedDayStrokeColor,
@@ -82,7 +81,6 @@ export const Grid: React.FC<GridProps> = props => {
   const renderedSelectedDay = useMemo(() => {
     if (!selectedDay) return null;
 
-    // нормализуем выбранную дату (без времени), чтобы не ловить проблемы с TZ
     const sd = new Date(
       selectedDay.getFullYear(),
       selectedDay.getMonth(),
@@ -90,12 +88,10 @@ export const Grid: React.FC<GridProps> = props => {
     );
 
     const res: ReactNode[] = [];
-    // важно идти до endColumnIndex - 1, чтобы был i+1
     for (let i = startColumnIndex; i < endColumnIndex; ++i) {
       const colStart = getDate(i);
       const colEnd = getDate(i + 1);
 
-      // попадает ли выбранная дата внутрь интервала колонки?
       const inBucket =
         sd.getTime() >= colStart.getTime() && sd.getTime() < colEnd.getTime();
       if (!inBucket) continue;

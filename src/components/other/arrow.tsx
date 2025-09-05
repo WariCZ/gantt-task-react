@@ -267,7 +267,7 @@ const drownPathAndTriangle = (
 
   const taskToEndPositionX = isTaskToLeftSide
     ? toX1 - arrowIndent
-    : toX2 + arrowIndent;
+    : toX2 + arrowIndent + 20;
   const taskToEndPositionY = toY + taskHeight / 2;
 
   const path = `M ${isTaskFromLeftSide ? fromX1 : fromX2} ${
@@ -275,7 +275,7 @@ const drownPathAndTriangle = (
   }
   H ${taskFromEndPositionX}
   V ${horizontalDockingY}
-  H ${taskToEndPositionX}
+  H ${taskToEndPositionX - 10}
   V ${taskToEndPositionY}
   H ${isTaskToLeftSide ? toX1 : toX2}`;
 

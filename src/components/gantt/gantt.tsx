@@ -81,10 +81,10 @@ import { copyOption } from "../../context-menu-options/copy";
 import { cutOption } from "../../context-menu-options/cut";
 import { pasteOption } from "../../context-menu-options/paste";
 import { deleteOption } from "../../context-menu-options/delete";
-
 import { useHolidays } from "./use-holidays";
 
 import styles from "./gantt.module.css";
+// import { createWorkingCalendar } from "../../helpers/workingCalendar";
 
 export const defaultColors: ColorStyles = {
   arrowColor: "grey",
@@ -561,6 +561,14 @@ export const Gantt: React.FC<GanttProps> = ({
   ]);
 
   useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") resetSelectedTasks();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [resetSelectedTasks]);
+
+  useEffect(() => {
     if (targetScrollIndexRef.current == null) return;
 
     const idx = targetScrollIndexRef.current;
@@ -568,7 +576,7 @@ export const Gantt: React.FC<GanttProps> = ({
 
     if (idx < currentTotal) {
       setScrollXProgrammatically(distances.columnWidth * idx);
-      targetScrollIndexRef.current = null; // очистить цель
+      targetScrollIndexRef.current = null;
     }
   }, [
     baseDatesLength,
@@ -576,6 +584,15 @@ export const Gantt: React.FC<GanttProps> = ({
     distances.columnWidth,
     setScrollXProgrammatically,
   ]);
+
+  // const cal = useMemo(
+  //   () =>
+  //     createWorkingCalendar(
+  //       (d, ext) => checkIsHoliday(d, ext), // адаптер
+  //       (date, act, ext) => roundDate(date, act, ext)
+  //     ),
+  //   [checkIsHoliday, roundDate]
+  // );
 
   const countTaskCoordinates = useCallback(
     (task: Task) =>
@@ -1145,7 +1162,7 @@ export const Gantt: React.FC<GanttProps> = ({
       return t;
     });
   };
-
+  //tut
   const onDateChange = useCallback(
     (action: BarMoveAction, changedTask: Task, originalTask: Task) => {
       const adjustedTask = adjustTaskToWorkingDates({
@@ -1952,6 +1969,10 @@ export const Gantt: React.FC<GanttProps> = ({
     [additionalLeftSpace, additionalRightSpace, svgWidth]
   );
 
+  const viewportHeight = ganttTaskContentRef.current?.clientHeight ?? 0;
+
+  const gridHeight = Math.max(ganttFullHeight, viewportHeight);
+
   const gridProps: GridProps = {
     additionalLeftSpace,
     ganttFullHeight,
@@ -1959,6 +1980,7 @@ export const Gantt: React.FC<GanttProps> = ({
     isUnknownDates,
     rtl,
     startDate,
+    gridHeight,
     todayColor: colorStyles.todayColor,
     holidayBackgroundColor: colorStyles.holidayBackgroundColor,
     viewMode,
@@ -2163,13 +2185,15 @@ export const Gantt: React.FC<GanttProps> = ({
       tabIndex={0}
       ref={wrapperRef}
       data-testid={`gantt-main`}
+      onMouseDownCapture={() => {
+        resetSelectedTasks();
+      }}
       style={{
         gridTemplateColumns: `${displayTable ? "max-content" : ""} auto`,
         background: colors.evenTaskBackgroundColor,
         color: colors.barLabelColor,
       }}
     >
-      {/* {columns.length > 0 && <TaskList {...tableProps} />} */}
       {displayTable && <TaskList {...tableProps} />}
 
       <TaskGantt
@@ -2186,6 +2210,7 @@ export const Gantt: React.FC<GanttProps> = ({
         ganttTaskRootRef={ganttTaskRootRef}
         onScrollGanttContentVertically={onScrollVertically}
         colors={colors}
+        gridHeight={gridHeight}
       />
 
       {tooltipTaskFromMap && (

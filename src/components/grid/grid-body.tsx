@@ -5,6 +5,7 @@ import type { DateExtremity, ViewMode } from "../../types/public-types";
 
 export type GridBodyProps = {
   additionalLeftSpace: number;
+  gridHeight: number;
   columnWidth: number;
   ganttFullHeight: number;
   isUnknownDates: boolean;
@@ -26,37 +27,48 @@ export type GridBodyProps = {
 const GridBodyInner: React.FC<GridBodyProps> = ({
   additionalLeftSpace,
   columnWidth,
-  ganttFullHeight,
   isUnknownDates,
   todayColor,
   rtl,
   startDate,
   viewMode,
+  gridHeight,
 }) => {
   const today = useMemo(() => {
-    if (isUnknownDates) {
-      return null;
-    }
+    if (isUnknownDates) return null;
 
     const todayIndex = getDatesDiff(new Date(), startDate, viewMode);
-
     const tickX = todayIndex * columnWidth;
+    const centerX = rtl ? tickX + columnWidth / 2 : tickX + columnWidth / 2;
 
-    const x = rtl ? tickX + columnWidth : tickX;
+    const lineWidth = columnWidth;
+    // const circleRadius = 6;
 
     return (
-      <rect
-        x={additionalLeftSpace + x}
-        y={0}
-        width={columnWidth}
-        height={ganttFullHeight}
-        fill={todayColor}
-      />
+      <>
+        <rect
+          x={additionalLeftSpace + centerX - lineWidth / 2}
+          y={0}
+          width={lineWidth}
+          height={gridHeight}
+          fill={todayColor}
+          pointerEvents="none"
+        />
+        {/* <circle
+          cx={additionalLeftSpace + centerX}
+          cy={0}
+          r={circleRadius}
+          fill={todayColor}
+          stroke="white"
+          strokeWidth={2}
+          pointerEvents="none"
+        /> */}
+      </>
     );
   }, [
     additionalLeftSpace,
     columnWidth,
-    ganttFullHeight,
+    gridHeight,
     isUnknownDates,
     rtl,
     startDate,
