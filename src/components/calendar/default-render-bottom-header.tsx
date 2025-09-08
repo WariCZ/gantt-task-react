@@ -6,6 +6,15 @@ import { getWeekNumberISO8601 } from "../../helpers/date-helper";
 
 import { DateSetup, ViewMode } from "../../types/public-types";
 
+const fmtHourSafe = (date: Date, dateSetup: DateSetup) => {
+  try {
+    const pat = dateSetup?.dateFormats?.hourBottomHeaderFormat || "HH:mm";
+    return format(date, pat, { locale: dateSetup.dateLocale });
+  } catch {
+    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  }
+};
+
 export const defaultRenderBottomHeader = (
   date: Date,
   viewMode: ViewMode,
@@ -60,8 +69,14 @@ export const defaultRenderBottomHeader = (
           break;
 
         case ViewMode.Hour:
-          value = formatDistance!("xHours", offsetFromStart);
-          break;
+          try {
+            return format(date, dateSetup.dateFormats.hourBottomHeaderFormat, {
+              locale: dateSetup.dateLocale,
+            });
+          } catch (e) {
+            debugger;
+            return String("popa");
+          }
 
         default:
           throw new Error("Unknown viewMode");
@@ -104,13 +119,7 @@ export const defaultRenderBottomHeader = (
     case ViewMode.QuarterDay:
     case ViewMode.HalfDay:
     case ViewMode.Hour:
-      try {
-        return format(date, dateSetup.dateFormats.hourBottomHeaderFormat, {
-          locale: dateSetup.dateLocale,
-        });
-      } catch (e) {
-        return String(date.getDate());
-      }
+      return fmtHourSafe(date, dateSetup);
 
     default:
       throw new Error("Unknown viewMode");

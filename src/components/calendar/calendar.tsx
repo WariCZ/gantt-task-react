@@ -1,4 +1,4 @@
-import React, {useCallback} from "react";
+import React, { useCallback } from "react";
 import type { ReactNode } from "react";
 
 import {
@@ -6,7 +6,8 @@ import {
   ViewMode,
   RenderTopHeader,
   RenderBottomHeader,
-  Distances, ColorStyles
+  Distances,
+  ColorStyles,
 } from "../../types/public-types";
 import { TopPartOfCalendar } from "./top-part-of-calendar";
 import { getDaysInMonth } from "../../helpers/date-helper";
@@ -48,7 +49,7 @@ export const Calendar: React.FC<CalendarProps> = ({
   renderTopHeader = defaultRenderTopHeader,
   rtl,
   startColumnIndex,
-  colors
+  colors,
 }) => {
   const renderBottomHeaderByDate = useCallback(
     (date: Date, index: number) =>
@@ -150,8 +151,7 @@ export const Calendar: React.FC<CalendarProps> = ({
             y1Line={0}
             y2Line={topDefaultHeight}
             xText={
-              additionalLeftSpace +
-              columnWidth * (startQuarter + 1.5) // Center the text
+              additionalLeftSpace + columnWidth * (startQuarter + 1.5) // Center the text
             }
             yText={topDefaultHeight * 0.9}
             colors={colors}
@@ -178,7 +178,6 @@ export const Calendar: React.FC<CalendarProps> = ({
           x={additionalLeftSpace + columnWidth * i + columnWidth * 0.5}
           className={styles.calendarBottomText}
           style={{ fill: colors.barLabelColor }}
-
         >
           {bottomValue}
         </text>
@@ -388,16 +387,13 @@ export const Calendar: React.FC<CalendarProps> = ({
     const bottomValues: ReactNode[] = [];
     const topDefaultHeight = headerHeight * 0.5;
 
-    const renderedDates = new Set<string>();
-
     for (let i = startColumnIndex; i <= endColumnIndex; i++) {
       const date = getDate(i);
-
       const bottomValue = renderBottomHeaderByDate(date, i);
 
       bottomValues.push(
         <text
-          key={date.getTime()}
+          key={`h-${date.getTime()}`}
           y={headerHeight * 0.8}
           x={additionalLeftSpace + columnWidth * (i + +rtl)}
           className={styles.calendarBottomText}
@@ -407,31 +403,46 @@ export const Calendar: React.FC<CalendarProps> = ({
           {bottomValue}
         </text>
       );
+    }
 
-      const dayOfMonth = date.getDate();
+    // верхний заголовок — один на сутки, по центру 24 колонок
+    for (let i = startColumnIndex; i <= endColumnIndex; ) {
+      const d0 = getDate(i);
+      const day = d0.getDate();
+      const month = d0.getMonth();
+      const year = d0.getFullYear();
 
-      const dateKey = `${dayOfMonth}/${date.getMonth()}/${date.getFullYear()}`;
-
-      if (!isUnknownDates && !renderedDates.has(dateKey)) {
-        renderedDates.add(dateKey);
-
-        const topValue = renderTopHeaderByDate(date);
-
-        const topPosition = date.getHours() / 2;
-
-        topValues.push(
-          <TopPartOfCalendar
-            key={dateKey}
-            value={topValue}
-            x1Line={additionalLeftSpace + columnWidth * i}
-            y1Line={0}
-            y2Line={topDefaultHeight}
-            xText={additionalLeftSpace + columnWidth * (i + topPosition)}
-            yText={topDefaultHeight * 0.9}
-            colors={colors}
-          />
-        );
+      // найдём диапазон индексов текущего дня [i .. j)
+      let j = i + 1;
+      while (
+        j <= endColumnIndex &&
+        getDate(j).getDate() === day &&
+        getDate(j).getMonth() === month &&
+        getDate(j).getFullYear() === year
+      ) {
+        j++;
       }
+
+      const topValue = renderTopHeaderByDate(d0);
+      const startIdx = i;
+      const endIdx = j; // не включительно
+      const midIdx = startIdx + (endIdx - startIdx) / 2;
+
+      topValues.push(
+        <TopPartOfCalendar
+          key={`d-${year}-${month + 1}-${day}`}
+          value={topValue}
+          x1Line={additionalLeftSpace + columnWidth * startIdx}
+          y1Line={0}
+          y2Line={topDefaultHeight}
+          xText={additionalLeftSpace + columnWidth * midIdx}
+          yText={topDefaultHeight * 0.9}
+          colors={colors}
+        />
+      );
+
+      // прыгаем сразу к следующему дню
+      i = j;
     }
 
     return [topValues, bottomValues];

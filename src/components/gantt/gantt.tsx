@@ -137,7 +137,7 @@ const defaultDateFormats: DateFormats = {
   dateColumnFormat: "E, d MMMM yyyy",
   dayBottomHeaderFormat: "E, d",
   dayTopHeaderFormat: "E, d",
-  hourBottomHeaderFormat: "HH",
+  hourBottomHeaderFormat: "HH:mm",
   monthBottomHeaderFormat: "LLL",
   monthTopHeaderFormat: "LLLL",
 };
