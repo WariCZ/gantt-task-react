@@ -274,6 +274,8 @@ export const Gantt: React.FC<GanttProps> = ({
     undefined
   );
   const [virtualRightCols, setVirtualRightCols] = useState(0);
+  const [startOffsetCols, setStartOffsetCols] = useState(0);
+  const [virtualLeftCols, setVirtualLeftCols] = useState(0);
 
   const [sortedTasks, setSortedTasks] = useState<TaskOrEmpty[]>(() =>
     [...tasks].sort(sortTasks)
@@ -447,11 +449,16 @@ export const Gantt: React.FC<GanttProps> = ({
     [visibleTasks, viewMode, preStepsCount]
   );
 
-  const datesLength = baseDatesLength + virtualRightCols;
+  const datesLength = baseDatesLength + virtualRightCols + virtualLeftCols;
+
+  const effectiveStartDate = useMemo(
+    () => getDateByOffset(startDate, -startOffsetCols, viewMode),
+    [startDate, startOffsetCols, viewMode]
+  );
 
   const getDate = useCallback(
-    (index: number) => getDateByOffset(startDate, index, viewMode),
-    [startDate, viewMode]
+    (index: number) => getDateByOffset(effectiveStartDate, index, viewMode),
+    [effectiveStartDate, viewMode]
   );
 
   const dateFormats = useMemo<DateFormats>(
@@ -513,8 +520,8 @@ export const Gantt: React.FC<GanttProps> = ({
     if (!svgClientWidth) return;
 
     const thresholdPx = 6 * distances.columnWidth;
-    const nearRightEdge = scrollX + svgClientWidth > svgWidth - thresholdPx;
-    if (!nearRightEdge) return;
+    const nearLeftEdge = scrollX < thresholdPx;
+    if (!nearLeftEdge) return;
 
     const CHUNK_BY_MODE: Record<ViewMode, number> = {
       [ViewMode.Hour]: 24 * 7,
@@ -528,13 +535,42 @@ export const Gantt: React.FC<GanttProps> = ({
       [ViewMode.Year]: 10,
     };
 
-    setVirtualRightCols(v => v + (CHUNK_BY_MODE[viewMode] || 52));
-  }, [scrollX, svgClientWidth, svgWidth, distances.columnWidth, viewMode]);
+    const chunk = CHUNK_BY_MODE[viewMode] || 52;
+
+    // 1) расширяем общую длину
+    setVirtualLeftCols(v => v + chunk);
+    // 2) сдвигаем «эффективный» старт дальше в прошлое
+    setStartOffsetCols(v => v + chunk);
+    // 3) компенсируем визуально текущий скролл, чтобы картинка не уехала вправо
+    setScrollXProgrammatically(scrollX + chunk * distances.columnWidth);
+  }, [
+    scrollX,
+    svgClientWidth,
+    distances.columnWidth,
+    viewMode,
+    setScrollXProgrammatically,
+  ]);
+
+  useEffect(() => {
+    // делаем это один раз при инициализации/смене viewMode/задач
+    const today = new Date();
+    const idxFromStartToToday = getDatesDiff(today, startDate, viewMode);
+    // если сегодня находится слишком близко к левому краю (меньше preStepsCount),
+    // добавим недостающие колонки слева
+    const need = preStepsCount - idxFromStartToToday;
+    if (need > 0) {
+      setVirtualLeftCols(v => v + need);
+      setStartOffsetCols(v => v + need);
+      // сдвинем скролл вправо, чтобы визуально остаться на том же месте
+      setScrollXProgrammatically(scrollX + need * distances.columnWidth);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [startDate, viewMode, preStepsCount]);
 
   useEffect(() => {
     if (!viewDate) return;
 
-    const index = getDatesDiff(viewDate, startDate, viewMode);
+    const index = getDatesDiff(viewDate, effectiveStartDate, viewMode);
     if (index < 0) return;
 
     const currentTotal = baseDatesLength + virtualRightCols;
@@ -558,6 +594,7 @@ export const Gantt: React.FC<GanttProps> = ({
     virtualRightCols,
     distances.columnWidth,
     setScrollXProgrammatically,
+    effectiveStartDate,
   ]);
 
   useEffect(() => {
@@ -599,7 +636,7 @@ export const Gantt: React.FC<GanttProps> = ({
       defaultCountTaskCoordinates(
         task,
         taskToRowIndexMap,
-        startDate,
+        effectiveStartDate, // was: startDate
         viewMode,
         rtl,
         fullRowHeight,
@@ -610,7 +647,7 @@ export const Gantt: React.FC<GanttProps> = ({
       ),
     [
       taskToRowIndexMap,
-      startDate,
+      effectiveStartDate, // was: startDate
       viewMode,
       rtl,
       fullRowHeight,
@@ -627,7 +664,7 @@ export const Gantt: React.FC<GanttProps> = ({
         tasks,
         visibleTasksMirror,
         taskToRowIndexMap,
-        startDate,
+        effectiveStartDate, // was: startDate
         viewMode,
         rtl,
         fullRowHeight,
@@ -641,7 +678,7 @@ export const Gantt: React.FC<GanttProps> = ({
       fullRowHeight,
       taskToRowIndexMap,
       rtl,
-      startDate,
+      effectiveStartDate, // was: startDate
       svgWidth,
       taskHeight,
       tasks,
@@ -722,7 +759,7 @@ export const Gantt: React.FC<GanttProps> = ({
       (viewDate && !currentViewDate) ||
       (viewDate && currentViewDate?.valueOf() !== viewDate.valueOf())
     ) {
-      const index = getDatesDiff(viewDate, startDate, viewMode);
+      const index = getDatesDiff(viewDate, effectiveStartDate, viewMode);
 
       if (index < 0) {
         return;
@@ -733,6 +770,7 @@ export const Gantt: React.FC<GanttProps> = ({
   }, [
     currentViewDate,
     distances,
+    effectiveStartDate,
     setCurrentViewDate,
     setScrollXProgrammatically,
     startDate,
@@ -1061,29 +1099,19 @@ export const Gantt: React.FC<GanttProps> = ({
         });
       }
     },
-    [
-      handleAddChilds,
-      onAddTask,
-      onAddTaskClick,
-      onChangeTasks,
-      getMetadata,
-      prepareSuggestions,
-    ]
+    [handleAddChilds, onAddTask, onAddTaskClick, onChangeTasks, getMetadata]
   );
 
   const xStep = useMemo(() => {
-    const secondDate = getDateByOffset(startDate, 1, viewMode);
-
+    const secondDate = getDateByOffset(effectiveStartDate, 1, viewMode);
     const dateDelta =
       secondDate.getTime() -
-      startDate.getTime() -
+      effectiveStartDate.getTime() -
       secondDate.getTimezoneOffset() * 60 * 1000 +
-      startDate.getTimezoneOffset() * 60 * 1000;
+      effectiveStartDate.getTimezoneOffset() * 60 * 1000;
 
-    const newXStep = (timeStep * distances.columnWidth) / dateDelta;
-
-    return newXStep;
-  }, [distances, startDate, timeStep, viewMode]);
+    return (timeStep * distances.columnWidth) / dateDelta;
+  }, [distances, effectiveStartDate, timeStep, viewMode]);
 
   const collectCascadeSet = useCallback(
     (root: Task): Task[] => {
@@ -1979,7 +2007,7 @@ export const Gantt: React.FC<GanttProps> = ({
     columnWidth: distances.columnWidth,
     isUnknownDates,
     rtl,
-    startDate,
+    startDate: effectiveStartDate,
     gridHeight,
     todayColor: colorStyles.todayColor,
     holidayBackgroundColor: colorStyles.holidayBackgroundColor,
