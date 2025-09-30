@@ -94,9 +94,18 @@ const TaskListTableRowInner: React.FC<TaskListTableRowProps> = ({
 
   const onRootMouseDown = useCallback(
     (event: MouseEvent) => {
-      if (event.button !== 0) {
+      const target = event.target as HTMLElement;
+
+      if (
+        target.tagName === "INPUT" ||
+        target.tagName === "TEXTAREA" ||
+        target.tagName === "SELECT" ||
+        target.isContentEditable
+      ) {
         return;
       }
+
+      if (event.button !== 0) return;
 
       if (task.type !== "empty") {
         scrollToTask(task);
@@ -105,7 +114,7 @@ const TaskListTableRowInner: React.FC<TaskListTableRowProps> = ({
       selectTaskOnMouseDown(task.id, event);
       onClick(task);
     },
-    [scrollToTask, selectTaskOnMouseDown, task]
+    [onClick, scrollToTask, selectTaskOnMouseDown, task]
   );
 
   const onContextMenu = useCallback(
@@ -169,7 +178,6 @@ const TaskListTableRowInner: React.FC<TaskListTableRowProps> = ({
       dependencies,
       depth,
       distances,
-      getTaskCurrentState,
       handleDeleteTasks,
       handleAddTask,
       handleEditTask,
@@ -351,7 +359,7 @@ const TaskListTableRowInner: React.FC<TaskListTableRowProps> = ({
             >
               <div
                 style={{
-                  pointerEvents: hoveringState.hoveringInside ? "none" : "auto",
+                  pointerEvents: "auto",
                 }}
               >
                 <Cell data={columnData} />

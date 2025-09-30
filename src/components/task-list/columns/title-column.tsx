@@ -1,40 +1,12 @@
-import React, { useCallback } from "react";
-
-import { ColumnProps, Icons, TaskOrEmpty } from "../../../types/public-types";
-
+import React, { useCallback, type ReactNode } from "react";
+import { ColumnProps, TaskOrEmpty } from "../../../types/public-types";
 import styles from "./title-column.module.css";
 
-const getExpanderSymbol = (
-  task: TaskOrEmpty,
-  hasChildren: boolean,
-  isClosed: boolean,
-  icons: Partial<Icons> | undefined
-) => {
-  if (!hasChildren) {
-    return icons?.renderNoChildrenIcon ? (
-      icons.renderNoChildrenIcon(task)
-    ) : (
-      <span style={{ color: "#6b7280" }}></span>
-    );
-  }
-
-  if (isClosed) {
-    return icons?.renderClosedIcon ? (
-      icons.renderClosedIcon(task)
-    ) : (
-      <span style={{ color: "#6b7280" }}>▶</span>
-    );
-  }
-
-  return icons?.renderOpenedIcon ? (
-    icons.renderOpenedIcon(task)
-  ) : (
-    <span style={{ color: "#6b7280" }}>▼</span>
-  );
-};
 type MenuRenderer = React.ComponentType<{ task: TaskOrEmpty }>;
 
-export const TitleColumn: React.FC<ColumnProps> = props => {
+export const TitleColumn: React.FC<
+  ColumnProps & { children?: ReactNode }
+> = props => {
   const {
     data: {
       colors,
@@ -47,43 +19,38 @@ export const TitleColumn: React.FC<ColumnProps> = props => {
       indexStr,
       task,
       onExpanderClick,
-      // onBurgerClick,
       Menu,
     },
+    children,
   } = props as ColumnProps & {
     data: ColumnProps["data"] & { Menu?: MenuRenderer };
+    children?: React.ReactNode;
   };
+
   const { name } = task;
 
-  const expanderSymbol = getExpanderSymbol(task, hasChildren, isClosed, icons);
-
-  const title = isShowTaskNumbers ? `${indexStr} ${name}` : name;
-
   const onClick = useCallback(() => {
-    if (task.type !== "empty") {
-      onExpanderClick(task);
-    }
+    if (task.type !== "empty") onExpanderClick(task);
   }, [onExpanderClick, task]);
 
-  // const onBurger = useCallback(
-  //   (e: React.MouseEvent) => {
-  //     e.stopPropagation();
-  //     if (task.type !== "empty") {
-  //       onBurgerClick?.(task);
-  //     }
-  //   },
-  //   [onBurgerClick, task]
-  // );
+  const expanderSymbol = !hasChildren
+    ? icons?.renderNoChildrenIcon?.(task) ?? (
+        <span style={{ color: "#6b7280" }} />
+      )
+    : isClosed
+    ? icons?.renderClosedIcon?.(task) ?? (
+        <span style={{ color: "#6b7280" }}>▶</span>
+      )
+    : icons?.renderOpenedIcon?.(task) ?? (
+        <span style={{ color: "#6b7280" }}>▼</span>
+      );
 
   return (
     <div
       data-testid={`title-table-cell-${name}`}
       className={styles.taskListNameWrapper}
-      style={{
-        display: "flex",
-        alignItems: "center",
-      }}
-      title={title}
+      style={{ display: "flex", alignItems: "center" }}
+      title={isShowTaskNumbers ? `${indexStr} ${name}` : name}
     >
       {Menu ? (
         <div
@@ -94,20 +61,13 @@ export const TitleColumn: React.FC<ColumnProps> = props => {
           <Menu task={task} />
         </div>
       ) : null}
-      {/* <button
-        type="button"
-        onClick={onBurger}
-        className={styles.taskListBurger ?? ""}
-        aria-label="Open task menu"
-      >
-        ☰
-      </button> */}
 
       <div
         style={{
           display: "flex",
           alignItems: "center",
           paddingLeft: depth * nestedTaskNameOffset,
+          gap: 2,
         }}
       >
         <div
@@ -115,19 +75,26 @@ export const TitleColumn: React.FC<ColumnProps> = props => {
             !hasChildren ? styles.taskListEmptyExpander : ""
           }`}
           onClick={onClick}
-          style={{
-            width: expandIconWidth,
-          }}
+          style={{ width: expandIconWidth }}
         >
           {expanderSymbol}
         </div>
 
         <div
-          style={{ color: colors.barLabelColor }}
+          style={{ color: colors.barLabelColor, flex: 1, minWidth: 0 }}
           className={styles.taskName}
         >
-          {isShowTaskNumbers && <b>{indexStr} </b>}
-          {name}
+          <div
+            className="flex items-center gap-2 whitespace-pre-wrap break-all"
+            style={{ pointerEvents: "auto" }}
+          >
+            {isShowTaskNumbers && <b>{indexStr} </b>}
+            {children ? (
+              <div style={{ pointerEvents: "auto" }}>{children}</div>
+            ) : (
+              <span onClick={e => e.stopPropagation()}>{name}</span>
+            )}
+          </div>
         </div>
       </div>
     </div>
