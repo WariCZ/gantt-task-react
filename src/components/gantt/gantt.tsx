@@ -813,6 +813,12 @@ export const Gantt: React.FC<GanttProps> = ({
    * Handles arrow keys events and transform it to new scroll
    */
   const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    // debugger;
+
+    const target = event.target as HTMLElement;
+    if (target.tagName === "INPUT") {
+      return;
+    }
     const { columnWidth, rowHeight } = distances;
     event.preventDefault();
     let newScrollY = ganttTaskContentRef.current.scrollTop;
