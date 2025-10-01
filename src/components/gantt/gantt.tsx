@@ -5,9 +5,6 @@ import React, {
   useRef,
   useState,
 } from "react";
-
-// import enDateLocale from "date-fns/locale/en-US";
-
 import {
   BarMoveAction,
   ChangeAction,
@@ -520,52 +517,69 @@ export const Gantt: React.FC<GanttProps> = ({
     if (!svgClientWidth) return;
 
     const thresholdPx = 6 * distances.columnWidth;
-    const nearLeftEdge = scrollX < thresholdPx;
-    if (!nearLeftEdge) return;
+    if (scrollX < thresholdPx) {
+      const CHUNK_BY_MODE: Record<ViewMode, number> = {
+        [ViewMode.Hour]: 24 * 7,
+        [ViewMode.QuarterDay]: 4 * 30,
+        [ViewMode.HalfDay]: 2 * 30,
+        [ViewMode.Day]: 90,
+        [ViewMode.TwoDays]: 90,
+        [ViewMode.Week]: 52,
+        [ViewMode.Month]: 24,
+        [ViewMode.QuarterYear]: 12,
+        [ViewMode.Year]: 10,
+      };
+      const chunk = CHUNK_BY_MODE[viewMode] || 52;
 
-    const CHUNK_BY_MODE: Record<ViewMode, number> = {
-      [ViewMode.Hour]: 24 * 7,
-      [ViewMode.QuarterDay]: 4 * 30,
-      [ViewMode.HalfDay]: 2 * 30,
-      [ViewMode.Day]: 90,
-      [ViewMode.TwoDays]: 90,
-      [ViewMode.Week]: 52,
-      [ViewMode.Month]: 24,
-      [ViewMode.QuarterYear]: 12,
-      [ViewMode.Year]: 10,
-    };
-
-    const chunk = CHUNK_BY_MODE[viewMode] || 52;
-
-    // 1) расширяем общую длину
-    setVirtualLeftCols(v => v + chunk);
-    // 2) сдвигаем «эффективный» старт дальше в прошлое
-    setStartOffsetCols(v => v + chunk);
-    // 3) компенсируем визуально текущий скролл, чтобы картинка не уехала вправо
-    setScrollXProgrammatically(scrollX + chunk * distances.columnWidth);
-  }, [
-    scrollX,
-    svgClientWidth,
-    distances.columnWidth,
-    viewMode,
-    setScrollXProgrammatically,
-  ]);
+      setVirtualLeftCols(v => v + chunk);
+      setStartOffsetCols(v => v + chunk);
+      setScrollXProgrammatically(scrollX + chunk * distances.columnWidth);
+    }
+  }, [scrollX, svgClientWidth, distances.columnWidth, viewMode]);
 
   useEffect(() => {
-    // делаем это один раз при инициализации/смене viewMode/задач
-    const today = new Date();
-    const idxFromStartToToday = getDatesDiff(today, startDate, viewMode);
-    // если сегодня находится слишком близко к левому краю (меньше preStepsCount),
-    // добавим недостающие колонки слева
-    const need = preStepsCount - idxFromStartToToday;
-    if (need > 0) {
-      setVirtualLeftCols(v => v + need);
-      setStartOffsetCols(v => v + need);
-      // сдвинем скролл вправо, чтобы визуально остаться на том же месте
-      setScrollXProgrammatically(scrollX + need * distances.columnWidth);
+    if (!svgClientWidth) return;
+
+    const thresholdPx =
+      svgWidth -
+      (ganttTaskRootRef.current?.clientWidth ?? 0) -
+      6 * distances.columnWidth;
+
+    if (scrollX > thresholdPx) {
+      const CHUNK_BY_MODE: Record<ViewMode, number> = {
+        [ViewMode.Hour]: 24 * 7,
+        [ViewMode.QuarterDay]: 4 * 30,
+        [ViewMode.HalfDay]: 2 * 30,
+        [ViewMode.Day]: 90,
+        [ViewMode.TwoDays]: 90,
+        [ViewMode.Week]: 52,
+        [ViewMode.Month]: 24,
+        [ViewMode.QuarterYear]: 12,
+        [ViewMode.Year]: 10,
+      };
+      const chunk = CHUNK_BY_MODE[viewMode] || 52;
+
+      setVirtualRightCols(v => v + chunk);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [startDate, viewMode, preStepsCount]);
+  }, [scrollX, svgClientWidth, svgWidth, distances.columnWidth, viewMode]);
+
+  useEffect(() => {
+    if (!tasks.length) return;
+
+    const today = new Date();
+    const idx = getDatesDiff(today, effectiveStartDate, viewMode);
+
+    if (idx >= 0) {
+      const px = Math.max((idx - preStepsCount) * distances.columnWidth, 0);
+      setScrollXProgrammatically(px);
+    }
+  }, [
+    tasks,
+    effectiveStartDate,
+    viewMode,
+    distances.columnWidth,
+    preStepsCount,
+  ]);
 
   useEffect(() => {
     if (!viewDate) return;
@@ -622,21 +636,12 @@ export const Gantt: React.FC<GanttProps> = ({
     setScrollXProgrammatically,
   ]);
 
-  // const cal = useMemo(
-  //   () =>
-  //     createWorkingCalendar(
-  //       (d, ext) => checkIsHoliday(d, ext), // адаптер
-  //       (date, act, ext) => roundDate(date, act, ext)
-  //     ),
-  //   [checkIsHoliday, roundDate]
-  // );
-
   const countTaskCoordinates = useCallback(
     (task: Task) =>
       defaultCountTaskCoordinates(
         task,
         taskToRowIndexMap,
-        effectiveStartDate, // was: startDate
+        effectiveStartDate,
         viewMode,
         rtl,
         fullRowHeight,
@@ -647,7 +652,7 @@ export const Gantt: React.FC<GanttProps> = ({
       ),
     [
       taskToRowIndexMap,
-      effectiveStartDate, // was: startDate
+      effectiveStartDate,
       viewMode,
       rtl,
       fullRowHeight,
@@ -1190,7 +1195,7 @@ export const Gantt: React.FC<GanttProps> = ({
       return t;
     });
   };
-  //tut
+
   const onDateChange = useCallback(
     (action: BarMoveAction, changedTask: Task, originalTask: Task) => {
       const adjustedTask = adjustTaskToWorkingDates({
