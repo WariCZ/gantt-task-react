@@ -64,7 +64,7 @@ const TaskListTableRowInner: React.FC<TaskListTableRowProps> = ({
   depth,
   distances,
   fullRowHeight,
-  getTaskCurrentState,
+  // getTaskCurrentState,
   handleAddTask,
   handleDeleteTasks,
   handleEditTask,
@@ -96,10 +96,13 @@ const TaskListTableRowInner: React.FC<TaskListTableRowProps> = ({
     (event: MouseEvent) => {
       const target = event.target as HTMLElement;
 
+      console.log("event.target", target.className);
       if (
         target.tagName === "INPUT" ||
         target.tagName === "TEXTAREA" ||
         target.tagName === "SELECT" ||
+        target.tagName === "BUTTON" ||
+        target.className.includes("select") ||
         target.isContentEditable
       ) {
         return;

@@ -1,9 +1,11 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useRef, useState, useEffect } from "react";
 import type { RefObject, SyntheticEvent } from "react";
 
 import { SCROLL_STEP } from "../../constants";
 
-export const useHorizontalScrollbars = (): [
+export const useHorizontalScrollbars = (
+  initialScrollX: number = 0
+): [
   RefObject<HTMLDivElement>,
   number,
   (nextScrollX: number) => void,
@@ -11,25 +13,25 @@ export const useHorizontalScrollbars = (): [
   () => void,
   () => void
 ] => {
-  const [scrollX, setScrollX] = useState(0);
+  const [scrollX, setScrollX] = useState(initialScrollX);
 
-  const ganttTaskRootRef = useRef<HTMLDivElement>(null);
-
+  const ganttTaskRootRef = useRef<HTMLDivElement>(
+    initialScrollX > 0 ? null : null
+  );
   const isLockedRef = useRef(false);
+
+  useEffect(() => {
+    if (ganttTaskRootRef.current && initialScrollX > 0) {
+      ganttTaskRootRef.current.scrollLeft = initialScrollX;
+    }
+  }, [initialScrollX]);
 
   const setScrollXProgrammatically = useCallback((nextScrollX: number) => {
     const scrollEl = ganttTaskRootRef.current;
-
-    if (!scrollEl) {
-      return;
-    }
+    if (!scrollEl) return;
 
     isLockedRef.current = true;
-
-    if (ganttTaskRootRef.current) {
-      ganttTaskRootRef.current.scrollLeft = nextScrollX;
-    }
-
+    scrollEl.scrollLeft = nextScrollX;
     setScrollX(scrollEl.scrollLeft);
 
     setTimeout(() => {
@@ -39,16 +41,12 @@ export const useHorizontalScrollbars = (): [
 
   const onVerticalScrollbarScrollX = useCallback(
     (event: SyntheticEvent<HTMLDivElement>) => {
-      if (isLockedRef.current) {
-        return;
-      }
+      if (isLockedRef.current) return;
 
       const nextScrollX = event.currentTarget.scrollLeft;
-
       if (ganttTaskRootRef.current) {
         ganttTaskRootRef.current.scrollLeft = nextScrollX;
       }
-
       setScrollX(nextScrollX);
     },
     []

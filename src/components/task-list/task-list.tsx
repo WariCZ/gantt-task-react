@@ -127,7 +127,6 @@ const TaskListInner: React.FC<TaskListProps & TaskListHeaderActionsProps> = (
     fullRowHeight
   );
 
-
   return (
     <div className={styles.ganttTableRoot} ref={taskListRef}>
       <div

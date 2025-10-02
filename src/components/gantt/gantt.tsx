@@ -241,9 +241,20 @@ export const Gantt: React.FC<GanttProps> = ({
   const wrapperRef = useRef<HTMLDivElement>(null);
   const taskListRef = useRef<HTMLDivElement>(null);
   const targetScrollIndexRef = useRef<number | null>(null);
+  const [virtualRightCols, setVirtualRightCols] = useState(0);
+  const [startOffsetCols, setStartOffsetCols] = useState(0);
+  const [virtualLeftCols, setVirtualLeftCols] = useState(0);
 
   const { contextMenu, handleCloseContextMenu, handleOpenContextMenu } =
     useContextMenu(wrapperRef);
+
+  const distances = useMemo<Distances>(
+    () => ({
+      ...defaultDistances,
+      ...distancesProp,
+    }),
+    [distancesProp]
+  );
 
   const [
     ganttTaskContentRef,
@@ -251,28 +262,6 @@ export const Gantt: React.FC<GanttProps> = ({
     setScrollYProgrammatically,
     onScrollVertically,
   ] = useVerticalScrollbars();
-
-  const [
-    ganttTaskRootRef,
-    scrollX,
-    setScrollXProgrammatically,
-    onVerticalScrollbarScrollX,
-    scrollToLeftStep,
-    scrollToRightStep,
-  ] = useHorizontalScrollbars();
-
-  const roundDate = useCallback(
-    (date: Date, action: BarMoveAction, dateExtremity: DateExtremity) =>
-      roundDateProp(date, viewMode, dateExtremity, action),
-    [roundDateProp, viewMode]
-  );
-
-  const [currentViewDate, setCurrentViewDate] = useState<Date | undefined>(
-    undefined
-  );
-  const [virtualRightCols, setVirtualRightCols] = useState(0);
-  const [startOffsetCols, setStartOffsetCols] = useState(0);
-  const [virtualLeftCols, setVirtualLeftCols] = useState(0);
 
   const [sortedTasks, setSortedTasks] = useState<TaskOrEmpty[]>(() =>
     [...tasks].sort(sortTasks)
@@ -290,6 +279,40 @@ export const Gantt: React.FC<GanttProps> = ({
   const [visibleTasks, visibleTasksMirror] = useMemo(
     () => collectVisibleTasks(childTasksMap, rootTasksMap),
     [childTasksMap, rootTasksMap]
+  );
+
+  const [startDate, minTaskDate, baseDatesLength] = useMemo(
+    () => ganttDateRange(visibleTasks, viewMode, preStepsCount),
+    [visibleTasks, viewMode, preStepsCount]
+  );
+
+  const effectiveStartDate = useMemo(
+    () => getDateByOffset(startDate, -startOffsetCols, viewMode),
+    [startDate, startOffsetCols, viewMode]
+  );
+
+  const today = new Date();
+  const idx = getDatesDiff(today, effectiveStartDate, viewMode);
+  const initialScrollX =
+    idx >= 0 ? Math.max((idx - preStepsCount) * distances.columnWidth, 0) : 0;
+
+  const [
+    ganttTaskRootRef,
+    scrollX,
+    setScrollXProgrammatically,
+    onVerticalScrollbarScrollX,
+    scrollToLeftStep,
+    scrollToRightStep,
+  ] = useHorizontalScrollbars(initialScrollX);
+
+  const roundDate = useCallback(
+    (date: Date, action: BarMoveAction, dateExtremity: DateExtremity) =>
+      roundDateProp(date, viewMode, dateExtremity, action),
+    [roundDateProp, viewMode]
+  );
+
+  const [currentViewDate, setCurrentViewDate] = useState<Date | undefined>(
+    undefined
   );
 
   const tasksMap = useMemo(() => getTasksMap(tasks), [tasks]);
@@ -351,14 +374,6 @@ export const Gantt: React.FC<GanttProps> = ({
 
     return getChildOutOfParentWarnings(tasks, childTasksMap);
   }, [tasks, childTasksMap, isShowChildOutOfParentWarnings]);
-
-  const distances = useMemo<Distances>(
-    () => ({
-      ...defaultDistances,
-      ...distancesProp,
-    }),
-    [distancesProp]
-  );
 
   const fullRowHeight = useMemo(
     () => distances.rowHeight * comparisonLevels,
@@ -441,17 +456,7 @@ export const Gantt: React.FC<GanttProps> = ({
     selectedIdsMirror,
   } = useSelection(taskToRowIndexMap, rowIndexToTaskMap, checkTaskIdExists);
 
-  const [startDate, minTaskDate, baseDatesLength] = useMemo(
-    () => ganttDateRange(visibleTasks, viewMode, preStepsCount),
-    [visibleTasks, viewMode, preStepsCount]
-  );
-
   const datesLength = baseDatesLength + virtualRightCols + virtualLeftCols;
-
-  const effectiveStartDate = useMemo(
-    () => getDateByOffset(startDate, -startOffsetCols, viewMode),
-    [startDate, startOffsetCols, viewMode]
-  );
 
   const getDate = useCallback(
     (index: number) => getDateByOffset(effectiveStartDate, index, viewMode),
@@ -562,24 +567,6 @@ export const Gantt: React.FC<GanttProps> = ({
       setVirtualRightCols(v => v + chunk);
     }
   }, [scrollX, svgClientWidth, svgWidth, distances.columnWidth, viewMode]);
-
-  useEffect(() => {
-    if (!tasks.length) return;
-
-    const today = new Date();
-    const idx = getDatesDiff(today, effectiveStartDate, viewMode);
-
-    if (idx >= 0) {
-      const px = Math.max((idx - preStepsCount) * distances.columnWidth, 0);
-      setScrollXProgrammatically(px);
-    }
-  }, [
-    tasks,
-    effectiveStartDate,
-    viewMode,
-    distances.columnWidth,
-    preStepsCount,
-  ]);
 
   useEffect(() => {
     if (!viewDate) return;
@@ -813,8 +800,6 @@ export const Gantt: React.FC<GanttProps> = ({
    * Handles arrow keys events and transform it to new scroll
    */
   const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
-    // debugger;
-
     const target = event.target as HTMLElement;
     if (target.tagName === "INPUT") {
       return;
