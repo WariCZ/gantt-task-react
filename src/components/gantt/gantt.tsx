@@ -1067,12 +1067,31 @@ export const Gantt: React.FC<GanttProps> = ({
   );
 
   const handleAddTask = useCallback(
-    (task: Task) => {
+    (parent?: Task) => {
+      // если parent не передан ИЛИ его нет в текущем списке — это добавление корня
+      const isRootAdd =
+        !parent ||
+        !tasks.some(
+          t =>
+            t.id === parent.id &&
+            (t.comparisonLevel ?? 1) === (parent.comparisonLevel ?? 1)
+        );
+
       if (onAddTaskClick) {
-        onAddTaskClick(task, (newTask: TaskOrEmpty) =>
-          getMetadata({
+        onAddTaskClick(parent as any, (newTask: TaskOrEmpty) => {
+          if (isRootAdd) {
+            // корневая вставка: просто дописываем в конец
+            if (onChangeTasks && newTask && newTask.type !== "empty") {
+              const next = [...tasks, newTask as Task];
+              onChangeTasks(next, { type: "add_root" });
+            }
+            // ничего дальше не считаем
+            return;
+          }
+
+          return getMetadata({
             type: "add-childs",
-            parent: task,
+            parent: parent!,
             descendants: [newTask],
             addedIdsMap: new Map([
               [newTask.comparisonLevel || 1, new Set([newTask.id])],
@@ -1083,19 +1102,31 @@ export const Gantt: React.FC<GanttProps> = ({
             addedRootsByLevelMap: new Map([
               [newTask.comparisonLevel || 1, [newTask]],
             ]),
-          })
-        );
-      } else if (onAddTask && onChangeTasks) {
-        onAddTask(task).then(nextTask => {
-          if (!nextTask) {
-            return;
-          }
+          });
+        });
+        return;
+      }
 
-          handleAddChilds(task, [nextTask]);
+      if (onAddTask && onChangeTasks) {
+        onAddTask(parent as any).then(nextTask => {
+          if (!nextTask) return;
+
+          if (isRootAdd) {
+            onChangeTasks([...tasks, nextTask], { type: "add_root" });
+          } else {
+            handleAddChilds(parent!, [nextTask]);
+          }
         });
       }
     },
-    [handleAddChilds, onAddTask, onAddTaskClick, onChangeTasks, getMetadata]
+    [
+      tasks,
+      onAddTaskClick,
+      onAddTask,
+      onChangeTasks,
+      getMetadata,
+      handleAddChilds,
+    ]
   );
 
   const xStep = useMemo(() => {
@@ -1248,7 +1279,7 @@ export const Gantt: React.FC<GanttProps> = ({
 
       const byIndex = new Map<number, OnDateChangeSuggestionType>();
       const merge = (arr: readonly OnDateChangeSuggestionType[]) => {
-        arr.forEach(s => byIndex.set(s[3], s)); // [start, end, task, index]
+        arr.forEach(s => byIndex.set(s[3], s));
       };
 
       const currentFromDraft = (t: Task): Task => {
@@ -2218,7 +2249,9 @@ export const Gantt: React.FC<GanttProps> = ({
         color: colors.barLabelColor,
       }}
     >
-      {displayTable && <TaskList {...tableProps} />}
+      {displayTable && (
+        <TaskList {...tableProps} handleAddTask={handleAddTask} />
+      )}
 
       <TaskGantt
         barProps={barProps}

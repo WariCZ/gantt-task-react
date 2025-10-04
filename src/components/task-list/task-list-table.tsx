@@ -2,7 +2,11 @@ import React, { memo, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 
 import { checkHasChildren } from "../../helpers/check-has-children";
-import { Task, TaskListTableProps, TaskOrEmpty } from "../../types/public-types";
+import {
+  Task,
+  TaskListTableProps,
+  TaskOrEmpty,
+} from "../../types/public-types";
 import { TaskListTableRow } from "./task-list-table-row";
 
 import styles from "./task-list-table.module.css";
@@ -38,7 +42,6 @@ const TaskListTableDefaultInner: React.FC<TaskListTableProps> = ({
   selectedIdsMirror,
   tasks,
 }) => {
-
   const renderedTasks = useMemo(
     /**
      * TO DO: maybe consider tasks on other levels?
@@ -124,24 +127,56 @@ const TaskListTableDefaultInner: React.FC<TaskListTableProps> = ({
     return (
       <>
         <div
+          className="relative w-full"
           style={{
             height: fullRowHeight * start,
           }}
         />
 
-        {renderedList}
+        <div>{renderedList}</div>
+        <div
+          onClick={() => handleAddTask?.()}
+          className="flex items-center justify-start 
+    w-full h-[35px] 
+    cursor-pointer border-t border-gray-200 
+    bg-transparent pl-3 
+    text-cyan-700 hover:text-cyan-800 
+    hover:bg-cyan-50 transition-colors
+  "
+        >
+          <span className="text-xl font-medium select-none">＋</span>
+        </div>
       </>
     );
   }, [
+    renderedIndexes,
+    fullRowHeight,
+    renderedTasks,
+    mapTaskToNestedIndex,
+    canMoveTasks,
     colors,
     columns,
-    cutIdsMirror,
-    fullRowHeight,
+    dateSetup,
+    dependencyMap,
+    distances,
     getTaskCurrentState,
-    renderedIndexes,
-    renderedTasks,
-    selectTaskOnMouseDown,
+    handleAddTask,
+    handleDeleteTasks,
+    handleEditTask,
+    handleMoveTaskBefore,
+    handleMoveTaskAfter,
+    handleMoveTasksInside,
+    handleOpenContextMenu,
+    childTasksMap,
+    icons,
+    cutIdsMirror,
     selectedIdsMirror,
+    isShowTaskNumbers,
+    onClick,
+    onExpanderClick,
+    scrollToTask,
+    selectTaskOnMouseDown,
+    tasks,
     draggedTask,
   ]);
 

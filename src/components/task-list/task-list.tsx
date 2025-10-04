@@ -156,7 +156,7 @@ const TaskListInner: React.FC<TaskListProps & TaskListHeaderActionsProps> = (
           <div
             style={{
               height: Math.max(
-                ganttFullHeight,
+                ganttFullHeight + 40,
                 distances.minimumRowDisplayed * distances.rowHeight
               ),
               backgroundSize: `100% ${fullRowHeight * 2}px`,

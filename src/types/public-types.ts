@@ -347,6 +347,9 @@ export type OnChangeTasksAction =
     }
   | {
       type: "date_change_cascade";
+    }
+  | {
+      type: "add_root";
     };
 
 export type RelationKind =
@@ -633,7 +636,7 @@ export interface TaskListTableProps {
   fullRowHeight: number;
   ganttFullHeight: number;
   getTaskCurrentState: (task: Task) => Task;
-  handleAddTask: (task: Task) => void;
+  // handleAddTask: (task: Task) => void;
   handleDeleteTasks: (task: TaskOrEmpty[]) => void;
   handleEditTask: (task: TaskOrEmpty) => void;
   handleMoveTaskBefore: (target: TaskOrEmpty, taskForMove: TaskOrEmpty) => void;
@@ -655,6 +658,7 @@ export interface TaskListTableProps {
   selectedIdsMirror: Readonly<Record<string, true>>;
   taskListWidth: number;
   tasks: readonly TaskOrEmpty[];
+  handleAddTask: (task?: Task) => void;
 }
 
 export interface TaskListHeaderProps extends TaskListHeaderActionsProps {
