@@ -236,6 +236,7 @@ export const Gantt: React.FC<GanttProps> = ({
   viewDate,
   viewMode = ViewMode.Day,
   cascadeDependencies = true,
+  readOnly = false,
 }) => {
   const ganttSVGRef = useRef<SVGSVGElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -2229,6 +2230,7 @@ export const Gantt: React.FC<GanttProps> = ({
     onCollapseAll,
     onExpandFirstLevel,
     onExpandAll,
+    readOnly,
   };
 
   const displayTable = !columnsProp || columnsProp.length > 0;

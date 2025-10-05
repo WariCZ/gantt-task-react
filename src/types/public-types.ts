@@ -620,6 +620,7 @@ export interface GanttProps extends EventOption, DisplayOption, StylingOption {
    */
   isAdjustToWorkingDates?: boolean;
   tasks: readonly TaskOrEmpty[];
+  readOnly?: boolean;
 }
 
 export interface TaskListTableProps {
@@ -659,6 +660,7 @@ export interface TaskListTableProps {
   taskListWidth: number;
   tasks: readonly TaskOrEmpty[];
   handleAddTask: (task?: Task) => void;
+  readOnly: boolean;
 }
 
 export interface TaskListHeaderProps extends TaskListHeaderActionsProps {

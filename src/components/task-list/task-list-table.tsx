@@ -41,6 +41,7 @@ const TaskListTableDefaultInner: React.FC<TaskListTableProps> = ({
   selectTaskOnMouseDown,
   selectedIdsMirror,
   tasks,
+  readOnly,
 }) => {
   const renderedTasks = useMemo(
     /**
@@ -134,23 +135,26 @@ const TaskListTableDefaultInner: React.FC<TaskListTableProps> = ({
         />
 
         <div>{renderedList}</div>
-        <div
-          onClick={() => handleAddTask?.()}
-          className="flex items-center justify-start 
+        {!readOnly && (
+          <div
+            onClick={() => handleAddTask?.()}
+            className="flex items-center justify-start 
     w-full h-[35px] 
     cursor-pointer border-t border-gray-200 
     bg-transparent pl-3 
     text-cyan-700 hover:text-cyan-800 
     hover:bg-cyan-50 transition-colors
   "
-        >
-          <span className="text-xl font-medium select-none">＋</span>
-        </div>
+          >
+            <span className="text-xl font-medium select-none">＋</span>
+          </div>
+        )}
       </>
     );
   }, [
     renderedIndexes,
     fullRowHeight,
+    readOnly,
     renderedTasks,
     mapTaskToNestedIndex,
     canMoveTasks,
