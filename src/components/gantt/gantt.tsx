@@ -2250,6 +2250,7 @@ export const Gantt: React.FC<GanttProps> = ({
         gridTemplateColumns: `${displayTable ? "max-content" : ""} auto`,
         background: colors.evenTaskBackgroundColor,
         color: colors.barLabelColor,
+        border: "1px solid red",
       }}
     >
       {displayTable && (
