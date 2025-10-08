@@ -587,6 +587,7 @@ export const Gantt: React.FC<GanttProps> = ({
       targetScrollIndexRef.current = index;
       return;
     }
+    console.log(viewMode);
     setScrollXProgrammatically(distances.columnWidth * index);
   }, [
     viewDate,
