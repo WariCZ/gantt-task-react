@@ -20,7 +20,8 @@ import { getDatesDiff } from "./get-dates-diff";
 export const ganttDateRange = (
   tasks: readonly TaskOrEmpty[],
   viewMode: ViewMode,
-  preStepsCount: number
+  preStepsCount: number,
+  selectedDay?: Date
 ): [Date, Date, number] => {
   let minTaskDate: Date | null = null;
   let maxTaskDate: Date | null = null;
@@ -101,7 +102,7 @@ export const ganttDateRange = (
   }
 
   return [
-    newStartDate,
+    selectedDay || newStartDate,
     minTaskDate,
     getDatesDiff(newEndDate, newStartDate, viewMode),
   ];

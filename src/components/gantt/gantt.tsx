@@ -293,6 +293,10 @@ export const Gantt: React.FC<GanttProps> = ({
     [startDate, startOffsetCols, viewMode]
   );
 
+  console.log("visibleTasks", visibleTasks);
+  console.log("startDate", startDate);
+  console.log("effectiveStartDate", effectiveStartDate);
+
   const today = new Date();
   const idx = getDatesDiff(today, effectiveStartDate, viewMode);
   const initialScrollX =
@@ -520,6 +524,19 @@ export const Gantt: React.FC<GanttProps> = ({
 
   const svgClientWidth = renderedColumnIndexes && renderedColumnIndexes[4];
 
+  // useEffect(() => {
+  //   if (!startDate) return;
+
+  //   const dateX = getXCoordinateFromDate(
+  //     startDate,
+  //     effectiveStartDate,
+  //     viewMode,
+  //     distances.columnWidth
+  //   );
+  //   console.log("setScrollXProgrammatically( --1");
+  //   setScrollXProgrammatically(dateX - 100);
+  // }, [startDate]);
+
   useEffect(() => {
     if (!selectedDay) return;
 
@@ -529,9 +546,35 @@ export const Gantt: React.FC<GanttProps> = ({
       viewMode,
       distances.columnWidth
     );
-
+    console.log("setScrollXProgrammatically( ---2");
     setScrollXProgrammatically(dateX - 100);
   }, [selectedDay]);
+
+  useEffect(() => {
+    if (!startDate) return;
+
+    const dateX = getXCoordinateFromDate(
+      startDate,
+      effectiveStartDate,
+      viewMode,
+      distances.columnWidth
+    );
+    console.log("setScrollXProgrammatically( ---1");
+    setScrollXProgrammatically(dateX - 100);
+  }, [startDate?.getTime()]);
+
+  // useEffect(() => {
+  //   if (!selectedDay && !startDate) return;
+
+  //   const dateX = getXCoordinateFromDate(
+  //     scrollDate || selectedDay || startDate,
+  //     effectiveStartDate,
+  //     viewMode,
+  //     distances.columnWidth
+  //   );
+  //   console.log("setScrollXProgrammatically( 1");
+  //   setScrollXProgrammatically(dateX - 100);
+  // }, [startDate, selectedDay]);
 
   useEffect(() => {
     if (!svgClientWidth) return;
@@ -553,6 +596,11 @@ export const Gantt: React.FC<GanttProps> = ({
 
       setVirtualLeftCols(v => v + chunk);
       setStartOffsetCols(v => v + chunk);
+      console.log(
+        "setScrollXProgrammatically( 2",
+        svgClientWidth,
+        effectiveStartDate
+      );
       setScrollXProgrammatically(scrollX + chunk * distances.columnWidth);
     }
   }, [scrollX, svgClientWidth, distances.columnWidth, viewMode]);
@@ -583,35 +631,65 @@ export const Gantt: React.FC<GanttProps> = ({
     }
   }, [scrollX, svgClientWidth, svgWidth, distances.columnWidth, viewMode]);
 
+  const [scrollDate, setScrollDate] = useState(undefined);
+
   useEffect(() => {
-    if (!viewDate) return;
+    if (!scrollX) return;
+    const dateX = getDateFromX(scrollX, 0, effectiveStartDate, xStep, timeStep);
+    setScrollDate(dateX);
+  }, [scrollX]);
 
-    const index = getDatesDiff(viewDate, effectiveStartDate, viewMode);
-    if (index < 0) return;
+  useEffect(() => {
+    console.log("viewMode", viewMode);
+    console.log("scrollX", scrollX);
+    console.log("initialScrollX", initialScrollX);
+    console.log("xStep, timeStep", xStep, timeStep);
+    console.log("effectiveStartDate", effectiveStartDate);
 
-    const currentTotal = baseDatesLength + virtualRightCols;
+    // const dateX = getDateFromX(scrollX, 0, effectiveStartDate, xStep, timeStep);
+    // console.log("dateX", dateX, formatDate(dateX));
 
-    const BUFFER_COLS = 4;
+    console.log("selectedDay", selectedDay);
+    if (!scrollDate) return;
+    const initialScrollX2 = getXCoordinateFromDate(
+      scrollDate,
+      effectiveStartDate,
+      viewMode,
+      distances.columnWidth
+    );
+    console.log("initialScrollX2", initialScrollX2);
+    console.log("setScrollXProgrammatically( 3");
+    setScrollXProgrammatically(initialScrollX2 - 100);
 
-    if (index + BUFFER_COLS > currentTotal) {
-      const needExtra = index + BUFFER_COLS - baseDatesLength;
-      if (needExtra > virtualRightCols) {
-        setVirtualRightCols(needExtra);
-      }
-      targetScrollIndexRef.current = index;
-      return;
-    }
-    console.log(viewMode);
-    setScrollXProgrammatically(distances.columnWidth * index);
+    // if (!viewDate) return;
+
+    // const index = getDatesDiff(viewDate, effectiveStartDate, viewMode);
+    // if (index < 0) return;
+
+    // const currentTotal = baseDatesLength + virtualRightCols;
+
+    // const BUFFER_COLS = 4;
+
+    // if (index + BUFFER_COLS > currentTotal) {
+    //   const needExtra = index + BUFFER_COLS - baseDatesLength;
+    //   if (needExtra > virtualRightCols) {
+    //     setVirtualRightCols(needExtra);
+    //   }
+    //   targetScrollIndexRef.current = index;
+    //   return;
+    // }
+    // console.log(viewMode);
+    // console.log("setScrollXProgrammatically( 3");
+    // setScrollXProgrammatically(distances.columnWidth * index);
   }, [
-    viewDate,
-    startDate,
+    // viewDate,
+    // startDate,
     viewMode,
-    baseDatesLength,
-    virtualRightCols,
-    distances.columnWidth,
-    setScrollXProgrammatically,
-    effectiveStartDate,
+    // baseDatesLength,
+    // virtualRightCols,
+    // distances.columnWidth,
+    // setScrollXProgrammatically,
+    // effectiveStartDate,
   ]);
 
   useEffect(() => {
@@ -629,6 +707,7 @@ export const Gantt: React.FC<GanttProps> = ({
     const currentTotal = baseDatesLength + virtualRightCols;
 
     if (idx < currentTotal) {
+      console.log("setScrollXProgrammatically( 4");
       setScrollXProgrammatically(distances.columnWidth * idx);
       targetScrollIndexRef.current = null;
     }
@@ -700,6 +779,7 @@ export const Gantt: React.FC<GanttProps> = ({
     (task: Task) => {
       const { x1 } = getTaskCoordinatesDefault(task, mapTaskToCoordinates);
 
+      console.log("setScrollXProgrammatically( 5");
       setScrollXProgrammatically(x1 - 100);
     },
     [mapTaskToCoordinates, setScrollXProgrammatically]
@@ -758,6 +838,7 @@ export const Gantt: React.FC<GanttProps> = ({
 
   useEffect(() => {
     if (rtl) {
+      console.log("setScrollXProgrammatically( 6");
       setScrollXProgrammatically(datesLength * distances.columnWidth);
     }
   }, [datesLength, distances, rtl, setScrollXProgrammatically, scrollX]);
@@ -851,6 +932,7 @@ export const Gantt: React.FC<GanttProps> = ({
       } else if (newScrollX > svgWidth) {
         newScrollX = svgWidth;
       }
+      console.log("setScrollXProgrammatically( 7");
       setScrollXProgrammatically(newScrollX);
     } else {
       setScrollYProgrammatically(newScrollY);

@@ -13,7 +13,7 @@ export const useHorizontalScrollbars = (
   () => void,
   () => void
 ] => {
-  console.log("initialScrollX", initialScrollX);
+  // console.log("initialScrollX", initialScrollX);
   const [scrollX, setScrollX] = useState(initialScrollX);
 
   const ganttTaskRootRef = useRef<HTMLDivElement>(
@@ -21,16 +21,16 @@ export const useHorizontalScrollbars = (
   );
   const isLockedRef = useRef(false);
 
-  useEffect(() => {
-    if (ganttTaskRootRef.current && initialScrollX > 0) {
-      console.log("useEffect", initialScrollX, scrollX);
-      // ganttTaskRootRef.current.scrollLeft = initialScrollX;
-    }
+  // useEffect(() => {
+  //   if (ganttTaskRootRef.current && initialScrollX > 0) {
+  //     console.log("useEffect", initialScrollX, scrollX);
+  //     // ganttTaskRootRef.current.scrollLeft = initialScrollX;
+  //   }
 
-    return () => {
-      console.log("remove useefect");
-    };
-  }, [initialScrollX]);
+  //   // return () => {
+  //   //   console.log("remove useefect");
+  //   // };
+  // }, [initialScrollX]);
 
   const setScrollXProgrammatically = useCallback((nextScrollX: number) => {
     const scrollEl = ganttTaskRootRef.current;
