@@ -7,6 +7,40 @@ import {
 import { getDatesDiff } from "./get-dates-diff";
 import { getDateByOffset } from "./get-date-by-offset";
 
+export const getXCoordinateFromDate = (
+  xDate: Date,
+  startDate: Date,
+  viewMode: ViewMode,
+  columnWidth: number
+) => {
+  const index = getDatesDiff(xDate, startDate, viewMode);
+
+  const currentDate = getDateByOffset(startDate, index, viewMode);
+  const nextDate = getDateByOffset(startDate, index + 1, viewMode);
+
+  const remainderMillis = xDate.getTime() - currentDate.getTime();
+  const percentOfInterval =
+    remainderMillis / (nextDate.getTime() - currentDate.getTime());
+  const x = index * columnWidth + percentOfInterval * columnWidth;
+  return x;
+};
+
+export const getDateFromX = (
+  x: number,
+  taskX: number,
+  taskDate: Date,
+  xStep: number,
+  timeStep: number
+) => {
+  let newDate = new Date(((x - taskX) / xStep) * timeStep + taskDate.getTime());
+  // let newDate = new Date((x / xStep) * timeStep);
+  newDate = new Date(
+    newDate.getTime() +
+      (newDate.getTimezoneOffset() - taskDate.getTimezoneOffset()) * 60000
+  );
+  return newDate;
+};
+
 export const taskXCoordinate = (
   xDate: Date,
   startDate: Date,
@@ -57,7 +91,7 @@ export const getProgressPoint = (
   return point.join(",");
 };
 
-const dateByX = (
+export const dateByX = (
   x: number,
   taskX: number,
   taskDate: Date,

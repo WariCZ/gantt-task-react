@@ -81,6 +81,7 @@ import { deleteOption } from "../../context-menu-options/delete";
 import { useHolidays } from "./use-holidays";
 
 import styles from "./gantt.module.css";
+import { getDateFromX, getXCoordinateFromDate } from "../../helpers/bar-helper";
 // import { createWorkingCalendar } from "../../helpers/workingCalendar";
 
 export const defaultColors: ColorStyles = {
@@ -520,6 +521,19 @@ export const Gantt: React.FC<GanttProps> = ({
   const svgClientWidth = renderedColumnIndexes && renderedColumnIndexes[4];
 
   useEffect(() => {
+    if (!selectedDay) return;
+
+    const dateX = getXCoordinateFromDate(
+      selectedDay,
+      effectiveStartDate,
+      viewMode,
+      distances.columnWidth
+    );
+
+    setScrollXProgrammatically(dateX - 100);
+  }, [selectedDay]);
+
+  useEffect(() => {
     if (!svgClientWidth) return;
 
     const thresholdPx = 6 * distances.columnWidth;
@@ -748,29 +762,29 @@ export const Gantt: React.FC<GanttProps> = ({
     }
   }, [datesLength, distances, rtl, setScrollXProgrammatically, scrollX]);
 
-  useEffect(() => {
-    if (
-      (viewDate && !currentViewDate) ||
-      (viewDate && currentViewDate?.valueOf() !== viewDate.valueOf())
-    ) {
-      const index = getDatesDiff(viewDate, effectiveStartDate, viewMode);
+  // useEffect(() => {
+  //   if (
+  //     (viewDate && !currentViewDate) ||
+  //     (viewDate && currentViewDate?.valueOf() !== viewDate.valueOf())
+  //   ) {
+  //     const index = getDatesDiff(viewDate, effectiveStartDate, viewMode);
 
-      if (index < 0) {
-        return;
-      }
-      setCurrentViewDate(viewDate);
-      setScrollXProgrammatically(distances.columnWidth * index);
-    }
-  }, [
-    currentViewDate,
-    distances,
-    effectiveStartDate,
-    setCurrentViewDate,
-    setScrollXProgrammatically,
-    startDate,
-    viewDate,
-    viewMode,
-  ]);
+  //     if (index < 0) {
+  //       return;
+  //     }
+  //     setCurrentViewDate(viewDate);
+  //     setScrollXProgrammatically(distances.columnWidth * index);
+  //   }
+  // }, [
+  //   currentViewDate,
+  //   distances,
+  //   effectiveStartDate,
+  //   setCurrentViewDate,
+  //   setScrollXProgrammatically,
+  //   startDate,
+  //   viewDate,
+  //   viewMode,
+  // ]);
 
   // scroll events
   useEffect(() => {
