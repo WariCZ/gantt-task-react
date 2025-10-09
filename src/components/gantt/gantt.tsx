@@ -238,6 +238,7 @@ export const Gantt: React.FC<GanttProps> = ({
   viewMode = ViewMode.Day,
   cascadeDependencies = true,
   readOnly = false,
+  allowedTypesForFitMove = ["project"],
 }) => {
   const ganttSVGRef = useRef<SVGSVGElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -1227,7 +1228,7 @@ export const Gantt: React.FC<GanttProps> = ({
 
     return items.map(t => {
       // console.log("item", t);
-      if (t.type === "project") {
+      if (allowedTypesForFitMove.includes(t.type as "project" | "task")) {
         const bounds = byParent.get(t.id);
         if (bounds) {
           const ns = new Date(bounds.min);
