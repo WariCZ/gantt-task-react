@@ -1226,6 +1226,7 @@ export const Gantt: React.FC<GanttProps> = ({
     }
 
     return items.map(t => {
+      // console.log("item", t);
       if (t.type === "project") {
         const bounds = byParent.get(t.id);
         if (bounds) {
@@ -1252,7 +1253,8 @@ export const Gantt: React.FC<GanttProps> = ({
         roundDate,
       });
 
-      if (action !== "move" || !cascadeDependencies) {
+      // if (action !== "move" || !cascadeDependencies) {
+      if (!cascadeDependencies) {
         const changeAction: ChangeAction =
           action === "move"
             ? {
@@ -2273,7 +2275,7 @@ export const Gantt: React.FC<GanttProps> = ({
         gridTemplateColumns: `${displayTable ? "max-content" : ""} auto`,
         background: colors.evenTaskBackgroundColor,
         color: colors.barLabelColor,
-        border: "1px solid red",
+        // border: "1px solid red",
       }}
     >
       {displayTable && (
