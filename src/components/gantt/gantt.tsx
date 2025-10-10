@@ -127,8 +127,8 @@ export const defaultColors: ColorStyles = {
   contextMenuBoxShadow: "rgb(0 0 0 / 25%) 1px 1px 5px 1px",
   contextMenuBgColor: "#fff",
   contextMenuTextColor: "inherit",
-  selectedDayBgColor: "rgba(200, 162, 200, 0.3)",
-  selectedDayStrokeColor: "#c8a2c8",
+  selectedDayBgColor: "rgba(200, 162, 200, 0)", //"rgba(200, 162, 200, 0.3)",
+  selectedDayStrokeColor: "rgba(200, 162, 200, 0)", //"#c8a2c8",
 };
 
 const defaultDateFormats: DateFormats = {
