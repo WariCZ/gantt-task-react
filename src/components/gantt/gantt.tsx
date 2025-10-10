@@ -271,7 +271,15 @@ export const Gantt: React.FC<GanttProps> = ({
   );
 
   useEffect(() => {
-    setSortedTasks([...tasks].sort(sortTasks));
+    const merged = (tasks as Task[]).map(t => {
+      const match = (sortedTasks as Task[]).find(st => st.id === t.id);
+      return {
+        ...t,
+        hideChildren: match ? match.hideChildren : t.hideChildren,
+      };
+    });
+
+    setSortedTasks([...merged].sort(sortTasks));
   }, [tasks]);
 
   const [childTasksMap, rootTasksMap] = useMemo(
