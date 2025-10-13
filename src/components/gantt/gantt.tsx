@@ -239,6 +239,7 @@ export const Gantt: React.FC<GanttProps> = ({
   cascadeDependencies = true,
   readOnly = false,
   allowedTypesForFitMove = ["project"],
+  style,
 }) => {
   const ganttSVGRef = useRef<SVGSVGElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -293,9 +294,10 @@ export const Gantt: React.FC<GanttProps> = ({
   );
 
   const [startDate, minTaskDate, baseDatesLength] = useMemo(
-    () => ganttDateRange(visibleTasks, viewMode, preStepsCount),
+    () => ganttDateRange(visibleTasks, viewMode, preStepsCount, selectedDay),
     [visibleTasks, viewMode, preStepsCount]
   );
+  // console.log(startDate, minTaskDate, baseDatesLength);
 
   const effectiveStartDate = useMemo(
     () => getDateByOffset(startDate, -startOffsetCols, viewMode),
@@ -538,7 +540,7 @@ export const Gantt: React.FC<GanttProps> = ({
       viewMode,
       distances.columnWidth
     );
-    setScrollXProgrammatically(dateX - 100);
+    setScrollXProgrammatically(dateX);
   }, [selectedDay]);
 
   useEffect(() => {
@@ -1235,7 +1237,6 @@ export const Gantt: React.FC<GanttProps> = ({
     }
 
     return items.map(t => {
-      // console.log("item", t);
       if (allowedTypesForFitMove.includes(t.type as "project" | "task")) {
         const bounds = byParent.get(t.id);
         if (bounds) {
@@ -2284,7 +2285,7 @@ export const Gantt: React.FC<GanttProps> = ({
         gridTemplateColumns: `${displayTable ? "max-content" : ""} auto`,
         background: colors.evenTaskBackgroundColor,
         color: colors.barLabelColor,
-        // border: "1px solid red",
+        ...style,
       }}
     >
       {displayTable && (

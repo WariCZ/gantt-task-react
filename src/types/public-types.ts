@@ -170,7 +170,7 @@ export interface Task {
    * From 0 to 100
    */
   progress: number;
-  assignees?: string[];
+  assignee?: string[];
   styles?: Partial<ColorStyles>;
   isDisabled?: boolean;
   isRelationDisabled?: boolean;
@@ -182,6 +182,7 @@ export interface Task {
   hideChildren?: boolean;
   displayOrder?: number;
   comparisonLevel?: number;
+  description?: JSON;
 }
 
 export interface EmptyTask {
@@ -622,6 +623,7 @@ export interface GanttProps extends EventOption, DisplayOption, StylingOption {
   tasks: readonly TaskOrEmpty[];
   readOnly?: boolean;
   allowedTypesForFitMove?: ("project" | "task")[];
+  style?: React.CSSProperties;
 }
 
 export interface TaskListTableProps {
