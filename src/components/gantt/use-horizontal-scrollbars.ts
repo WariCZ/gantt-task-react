@@ -11,9 +11,11 @@ export const useHorizontalScrollbars = (
   (nextScrollX: number) => void,
   (event: SyntheticEvent<HTMLDivElement>) => void,
   () => void,
-  () => void
+  () => void,
+  number
 ] => {
   const [scrollX, setScrollX] = useState(initialScrollX);
+  const [scrollXminus, setScrollXminus] = useState(initialScrollX);
 
   const ganttTaskRootRef = useRef<HTMLDivElement>(
     initialScrollX > 0 ? null : null
@@ -34,6 +36,9 @@ export const useHorizontalScrollbars = (
     isLockedRef.current = true;
 
     scrollEl.scrollLeft = nextScrollX;
+    // if (nextScrollX < 0) {
+    setScrollXminus(nextScrollX);
+    // }
     setScrollX(scrollEl.scrollLeft);
 
     setTimeout(() => {
@@ -69,5 +74,6 @@ export const useHorizontalScrollbars = (
     onVerticalScrollbarScrollX,
     scrollToLeftStep,
     scrollToRightStep,
+    scrollXminus,
   ];
 };

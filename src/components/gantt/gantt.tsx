@@ -316,6 +316,7 @@ export const Gantt: React.FC<GanttProps> = ({
     onVerticalScrollbarScrollX,
     scrollToLeftStep,
     scrollToRightStep,
+    scrollXminus,
   ] = useHorizontalScrollbars(initialScrollX);
 
   const roundDate = useCallback(
@@ -531,44 +532,9 @@ export const Gantt: React.FC<GanttProps> = ({
 
   const svgClientWidth = renderedColumnIndexes && renderedColumnIndexes[4];
 
-  // useEffect(() => {
-  //   if (initDate) {
-  //     setTimeout(() => {
-  //       var effectiveStartDate = getDateByOffset(
-  //         startDate,
-  //         -startOffsetCols,
-  //         viewMode
-  //       );
-  //       console.log(
-  //         "initDate",
-  //         initDate,
-  //         effectiveStartDate,
-  //         viewMode,
-  //         distances.columnWidth
-  //       );
-
-  //       const dateX = getXCoordinateFromDate(
-  //         initDate,
-  //         effectiveStartDate,
-  //         viewMode,
-  //         distances.columnWidth
-  //       );
-  //       // debugger;
-  //       setScrollXProgrammatically(dateX);
-  //     }, 3000);
-  //   }
-  // }, []);
-
   useEffect(() => {
     if (!selectedDay) return;
 
-    console.log(
-      "selectedDay",
-      selectedDay,
-      effectiveStartDate,
-      viewMode,
-      distances.columnWidth
-    );
     const dateX = getXCoordinateFromDate(
       selectedDay,
       effectiveStartDate,
@@ -581,13 +547,6 @@ export const Gantt: React.FC<GanttProps> = ({
   useEffect(() => {
     if (!startDate) return;
 
-    console.log(
-      "startDate",
-      startDate,
-      effectiveStartDate,
-      viewMode,
-      distances.columnWidth
-    );
     const dateX = getXCoordinateFromDate(
       startDate,
       effectiveStartDate,
@@ -613,14 +572,27 @@ export const Gantt: React.FC<GanttProps> = ({
         [ViewMode.QuarterYear]: 12,
         [ViewMode.Year]: 10,
       };
-      const chunk = CHUNK_BY_MODE[viewMode] || 52;
+      let chunk = CHUNK_BY_MODE[viewMode] || 52;
 
-      setVirtualLeftCols(v => v + chunk);
-      setStartOffsetCols(v => v + chunk);
+      if (scrollX === 0 && scrollXminus < 0) {
+        chunk =
+          Math.ceil(-scrollXminus / (chunk * distances.columnWidth)) * chunk;
+        setVirtualLeftCols(v => v + chunk);
+        setStartOffsetCols(v => v + chunk);
 
-      setScrollXProgrammatically(scrollX + chunk * distances.columnWidth);
+        // console.log("setScrollXProgrammatically", scrollX, scrollXminus);
+        setScrollXProgrammatically(
+          scrollXminus + chunk * distances.columnWidth
+        );
+      } else {
+        setVirtualLeftCols(v => v + chunk);
+        setStartOffsetCols(v => v + chunk);
+
+        // console.log("setScrollXProgrammatically", scrollX, scrollXminus);
+        setScrollXProgrammatically(scrollX + chunk * distances.columnWidth);
+      }
     }
-  }, [scrollX, svgClientWidth, distances.columnWidth, viewMode]);
+  }, [scrollX, scrollXminus, svgClientWidth, distances.columnWidth, viewMode]);
 
   useEffect(() => {
     if (!svgClientWidth) return;
@@ -761,7 +733,7 @@ export const Gantt: React.FC<GanttProps> = ({
   const scrollToTask = useCallback(
     (task: Task) => {
       const { x1 } = getTaskCoordinatesDefault(task, mapTaskToCoordinates);
-
+      // debugger;
       setScrollXProgrammatically(x1 - 100);
     },
     [mapTaskToCoordinates, setScrollXProgrammatically]
