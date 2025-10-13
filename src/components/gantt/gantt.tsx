@@ -240,6 +240,7 @@ export const Gantt: React.FC<GanttProps> = ({
   readOnly = false,
   allowedTypesForFitMove = ["project"],
   style,
+  initDate,
 }) => {
   const ganttSVGRef = useRef<SVGSVGElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -294,10 +295,9 @@ export const Gantt: React.FC<GanttProps> = ({
   );
 
   const [startDate, minTaskDate, baseDatesLength] = useMemo(
-    () => ganttDateRange(visibleTasks, viewMode, preStepsCount, selectedDay),
+    () => ganttDateRange(visibleTasks, viewMode, preStepsCount, initDate),
     [visibleTasks, viewMode, preStepsCount]
   );
-  // console.log(startDate, minTaskDate, baseDatesLength);
 
   const effectiveStartDate = useMemo(
     () => getDateByOffset(startDate, -startOffsetCols, viewMode),
@@ -531,9 +531,44 @@ export const Gantt: React.FC<GanttProps> = ({
 
   const svgClientWidth = renderedColumnIndexes && renderedColumnIndexes[4];
 
+  // useEffect(() => {
+  //   if (initDate) {
+  //     setTimeout(() => {
+  //       var effectiveStartDate = getDateByOffset(
+  //         startDate,
+  //         -startOffsetCols,
+  //         viewMode
+  //       );
+  //       console.log(
+  //         "initDate",
+  //         initDate,
+  //         effectiveStartDate,
+  //         viewMode,
+  //         distances.columnWidth
+  //       );
+
+  //       const dateX = getXCoordinateFromDate(
+  //         initDate,
+  //         effectiveStartDate,
+  //         viewMode,
+  //         distances.columnWidth
+  //       );
+  //       // debugger;
+  //       setScrollXProgrammatically(dateX);
+  //     }, 3000);
+  //   }
+  // }, []);
+
   useEffect(() => {
     if (!selectedDay) return;
 
+    console.log(
+      "selectedDay",
+      selectedDay,
+      effectiveStartDate,
+      viewMode,
+      distances.columnWidth
+    );
     const dateX = getXCoordinateFromDate(
       selectedDay,
       effectiveStartDate,
@@ -546,6 +581,13 @@ export const Gantt: React.FC<GanttProps> = ({
   useEffect(() => {
     if (!startDate) return;
 
+    console.log(
+      "startDate",
+      startDate,
+      effectiveStartDate,
+      viewMode,
+      distances.columnWidth
+    );
     const dateX = getXCoordinateFromDate(
       startDate,
       effectiveStartDate,

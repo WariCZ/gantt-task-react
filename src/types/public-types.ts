@@ -182,7 +182,7 @@ export interface Task {
   hideChildren?: boolean;
   displayOrder?: number;
   comparisonLevel?: number;
-  description?: JSON;
+  description?: JSON | string;
 }
 
 export interface EmptyTask {
@@ -624,6 +624,7 @@ export interface GanttProps extends EventOption, DisplayOption, StylingOption {
   readOnly?: boolean;
   allowedTypesForFitMove?: ("project" | "task")[];
   style?: React.CSSProperties;
+  initDate?: Date;
 }
 
 export interface TaskListTableProps {

@@ -202,7 +202,7 @@ const TaskGanttInner: React.FC<TaskGanttProps> = props => {
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width={fullSvgWidth}
-            height={props.gridHeight}
+            height={props.gridHeight + 35}
             fontFamily={barProps.fontFamily}
             ref={ganttSVGRef}
             style={{
