@@ -183,12 +183,14 @@ export interface Task {
   displayOrder?: number;
   comparisonLevel?: number;
   description?: JSON | string;
+  updatedTime: number;
 }
 
 export interface EmptyTask {
   id: string;
   type: "empty";
   name: string;
+  updatedTime: number;
   parent?: string;
   comparisonLevel?: number;
   displayOrder?: number;

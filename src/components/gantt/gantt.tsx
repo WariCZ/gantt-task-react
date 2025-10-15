@@ -281,6 +281,38 @@ export const Gantt: React.FC<GanttProps> = ({
       };
     });
 
+    (tasks as Task[]).map(task => {
+      const prev: Task = (sortedTasks as Task[])!.find(t => t.id === task.id);
+      if (prev && prev.updatedTime !== task.updatedTime) {
+        if (
+          prev.start &&
+          task.start &&
+          prev.start.getTime() !== task.start.getTime() &&
+          prev.end &&
+          task.end &&
+          prev.end.getTime() !== task.end.getTime()
+        ) {
+          onDateChange("move", task, prev);
+        }
+
+        if (
+          prev.start &&
+          task.start &&
+          prev.start.getTime() !== task.start.getTime()
+        ) {
+          onDateChange("start", task, prev);
+        } else if (
+          prev.end &&
+          task.end &&
+          prev.end.getTime() !== task.end.getTime()
+        ) {
+          onDateChange("end", task, prev);
+        }
+      } else {
+        return false;
+      }
+    });
+
     setSortedTasks([...merged].sort(sortTasks));
   }, [tasks]);
 
@@ -1238,35 +1270,126 @@ export const Gantt: React.FC<GanttProps> = ({
   );
 
   const fitParentsToChildren = (items: Task[]): Task[] => {
-    const byParent = new Map<string, { min: number; max: number }>();
+    // map id -> task
+    const byId = new Map(items.map(t => [t.id, t]));
 
+    // map parentId -> children
+    const children = new Map<string, string[]>();
     for (const t of items) {
-      if (!t.parent) continue;
-      const rec = byParent.get(t.parent) ?? { min: Infinity, max: -Infinity };
-      const s = t.start.getTime();
-      const e = t.end.getTime();
-      if (s < rec.min) rec.min = s;
-      if (e > rec.max) rec.max = e;
-      byParent.set(t.parent, rec);
+      if (t.parent) {
+        const arr = children.get(t.parent) ?? [];
+        arr.push(t.id);
+        children.set(t.parent, arr);
+      }
     }
 
-    return items.map(t => {
-      if (allowedTypesForFitMove.includes(t.type as "project" | "task")) {
-        const bounds = byParent.get(t.id);
-        if (bounds) {
-          const ns = new Date(bounds.min);
-          const ne = new Date(bounds.max);
-          if (
-            t.start.getTime() !== ns.getTime() ||
-            t.end.getTime() !== ne.getTime()
-          ) {
-            return { ...t, start: ns, end: ne };
-          }
+    // cache výsledků, aby se každý uzel počítal jen jednou
+    const boundsCache = new Map<string, { min: number; max: number }>();
+
+    // 🔁 rekurzivní výpočet hranic
+    const computeBounds = (id: string): { min: number; max: number } | null => {
+      const subs = children.get(id);
+
+      // leaf → použijeme jeho vlastní range
+      if (!subs || subs.length === 0) {
+        const t = byId.get(id);
+        if (!t) return null;
+        const range = { min: t.start.getTime(), max: t.end.getTime() };
+        boundsCache.set(id, range);
+        return range;
+      }
+
+      let min = Infinity;
+      let max = -Infinity;
+      let found = false;
+
+      for (const cid of subs) {
+        const cb = boundsCache.get(cid) ?? computeBounds(cid);
+        if (cb) {
+          found = true;
+          if (cb.min < min) min = cb.min;
+          if (cb.max > max) max = cb.max;
         }
+      }
+
+      if (!found) return null;
+
+      const result = { min, max };
+      boundsCache.set(id, result);
+      return result;
+    };
+
+    // nejdřív najdeme všechny rooty (bez parenta)
+    const roots = items.filter(t => !t.parent);
+    for (const root of roots) {
+      computeBounds(root.id);
+    }
+
+    // vytvoříme nové tasks podle vypočtených hodnot
+    const newItems = items.map(t => {
+      const bounds = boundsCache.get(t.id);
+      if (
+        bounds &&
+        allowedTypesForFitMove.includes(t.type as any) &&
+        (t.start.getTime() !== bounds.min || t.end.getTime() !== bounds.max)
+      ) {
+        return { ...t, start: new Date(bounds.min), end: new Date(bounds.max) };
       }
       return t;
     });
+
+    return newItems;
   };
+
+  const getAllParents = useCallback(
+    (items: Task[], childId: string): Task[] => {
+      const byId = new Map(items.map(t => [t.id, t]));
+      const children = new Map<string, Task[]>();
+
+      // indexujeme děti podle parent id
+      for (const t of items) {
+        if (t.parent) {
+          if (!children.has(t.parent)) children.set(t.parent, []);
+          children.get(t.parent)!.push(t);
+        }
+      }
+
+      // 🔼 najdeme všechny rodiče
+      const parents: Task[] = [];
+      let current = byId.get(childId);
+      while (current && current.parent) {
+        const parent = byId.get(current.parent);
+        if (!parent) break;
+        parents.push(parent);
+        current = parent;
+      }
+
+      // 🔽 rekurzivně najdeme všechny potomky
+      const descendants: Task[] = [];
+      const collectChildren = (id: string) => {
+        const subs = children.get(id);
+        if (!subs) return;
+        for (const c of subs) {
+          descendants.push(c);
+          collectChildren(c.id);
+        }
+      };
+
+      for (const p of parents) {
+        collectChildren(p.id);
+      }
+
+      // výsledek = původní child + parenti + jejich childi
+      const result = new Map<string, Task>();
+      const start = byId.get(childId);
+      if (start) result.set(start.id, start);
+      for (const p of parents) result.set(p.id, p);
+      for (const c of descendants) result.set(c.id, c);
+
+      return Array.from(result.values());
+    },
+    []
+  );
 
   const onDateChange = useCallback(
     (action: BarMoveAction, changedTask: Task, originalTask: Task) => {
@@ -1362,7 +1485,19 @@ export const Gantt: React.FC<GanttProps> = ({
         const movedIdx = idxOf(originalTask);
         if (movedIdx >= 0) next[movedIdx] = adjustedTask;
 
-        next = fitParentsToChildren(next as Task[]);
+        const parents = getAllParents(next as Task[], adjustedTask.id);
+        debugger;
+        const parentItems = fitParentsToChildren([
+          ...parents,
+          adjustedTask,
+        ] as Task[]);
+
+        next = next.map(item => {
+          const updated = parentItems.find(p => p.id === item.id);
+          return updated ? updated : item;
+        });
+
+        // next = fitParentsToChildren(next as Task[]);
 
         onChangeTasks(next, { type: "date_change_cascade" });
       }

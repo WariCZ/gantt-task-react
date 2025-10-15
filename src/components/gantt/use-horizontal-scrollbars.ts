@@ -22,13 +22,6 @@ export const useHorizontalScrollbars = (
   );
   const isLockedRef = useRef(false);
 
-  // useEffect(() => {
-  //   if (ganttTaskRootRef.current && initialScrollX > 0) {
-  //     console.log("useEffect", initialScrollX, scrollX);
-  //     // ganttTaskRootRef.current.scrollLeft = initialScrollX;
-  //   }
-  // }, [initialScrollX]);
-
   const setScrollXProgrammatically = useCallback((nextScrollX: number) => {
     const scrollEl = ganttTaskRootRef.current;
     if (!scrollEl) return;
@@ -36,9 +29,8 @@ export const useHorizontalScrollbars = (
     isLockedRef.current = true;
 
     scrollEl.scrollLeft = nextScrollX;
-    // if (nextScrollX < 0) {
+
     setScrollXminus(nextScrollX);
-    // }
     setScrollX(scrollEl.scrollLeft);
 
     setTimeout(() => {
