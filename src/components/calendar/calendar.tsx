@@ -242,8 +242,10 @@ export const Calendar: React.FC<CalendarProps> = ({
           x={additionalLeftSpace + columnWidth * (i + +rtl)}
           className={styles.calendarBottomText}
           style={{ fill: colors.barLabelColor }}
+          // tooltip={formatDate(date)}
         >
           {bottomValue}
+          {/* {formatDate(date)} */}
         </text>
       );
 
@@ -307,6 +309,8 @@ export const Calendar: React.FC<CalendarProps> = ({
         renderedMonths.add(monthKey);
         const topValue = renderTopHeaderByDate(date);
 
+        // const topValue = formatDate(date);
+
         const startIndex = i + 1 - date.getDate();
         const endIndex = startIndex + getDaysInMonth(month, fullYear);
 
@@ -314,6 +318,7 @@ export const Calendar: React.FC<CalendarProps> = ({
 
         topValues.push(
           <TopPartOfCalendar
+            moovingXText={additionalLeftSpace + columnWidth * i + 100}
             key={`${month}_${fullYear}`}
             value={topValue}
             x1Line={additionalLeftSpace + columnWidth * endIndex}

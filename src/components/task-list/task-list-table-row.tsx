@@ -94,9 +94,15 @@ const TaskListTableRowInner: React.FC<TaskListTableRowProps> = ({
 
   const onRootMouseDown = useCallback(
     (event: MouseEvent) => {
+      // console.log("DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD");
+      // console.log("event.target", event.target);
+      // console.log("event.button", event.button);
+      // console.log("task", task);
+      // console.log("event", event);
       const target = event.target as HTMLElement;
 
       console.log("event.target", target.className);
+      // // debugger;
       if (
         target.tagName === "INPUT" ||
         target.tagName === "TEXTAREA" ||
@@ -105,7 +111,7 @@ const TaskListTableRowInner: React.FC<TaskListTableRowProps> = ({
         target.className.includes("select") ||
         target.isContentEditable
       ) {
-        return;
+        // return;
       }
 
       if (event.button !== 0) return;
@@ -114,10 +120,22 @@ const TaskListTableRowInner: React.FC<TaskListTableRowProps> = ({
         scrollToTask(task);
       }
 
-      selectTaskOnMouseDown(task.id, event);
-      onClick(task);
+      // Toto jsem musel pridat potom co kliknu v hamburger menu childu na polozku
+      //  po rozbaleni childu na prvni klik to nefunguje az podruhe.
+      // proc to dela nevim. neprojevuje se ani debugger ani console.log
+      if (
+        (event.target as any)?.innerText &&
+        ((event.target as any)?.innerText === "▼" ||
+          (event.target as any)?.innerText === "▶")
+      ) {
+        return;
+      }
+      if (task && event) {
+        selectTaskOnMouseDown(task.id, event);
+        onClick(task);
+      }
     },
-    [onClick, scrollToTask, selectTaskOnMouseDown, task]
+    [onClick, scrollToTask, task]
   );
 
   const onContextMenu = useCallback(

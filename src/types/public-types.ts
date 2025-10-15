@@ -184,6 +184,7 @@ export interface Task {
   comparisonLevel?: number;
   description?: JSON | string;
   updatedTime: number;
+  priority?: string;
 }
 
 export interface EmptyTask {

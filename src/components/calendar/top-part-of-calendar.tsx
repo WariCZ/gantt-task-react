@@ -1,7 +1,5 @@
 import React from "react";
-import type {
-  ReactNode,
-} from "react";
+import type { ReactNode } from "react";
 
 import styles from "./calendar.module.css";
 import { ColorStyles } from "../../types/public-types";
@@ -14,6 +12,7 @@ type TopPartOfCalendarProps = {
   xText: number;
   yText: number;
   colors: Partial<ColorStyles>;
+  moovingXText?: number;
 };
 
 export const TopPartOfCalendar: React.FC<TopPartOfCalendarProps> = ({
@@ -23,7 +22,8 @@ export const TopPartOfCalendar: React.FC<TopPartOfCalendarProps> = ({
   y2Line,
   xText,
   yText,
-  colors
+  colors,
+  moovingXText,
 }) => {
   return (
     <g className="calendarTop">
@@ -38,7 +38,8 @@ export const TopPartOfCalendar: React.FC<TopPartOfCalendarProps> = ({
       {value !== null && (
         <text
           y={yText}
-          x={xText}
+          // x={xText}
+          x={moovingXText || xText}
           className={styles.calendarTopText}
           style={{ fill: colors.barLabelColor }}
         >

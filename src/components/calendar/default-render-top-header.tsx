@@ -1,6 +1,6 @@
 import format from "date-fns/format";
 
-import {DateSetup, ViewMode} from "../../types/public-types";
+import { DateSetup, ViewMode } from "../../types/public-types";
 
 const getDayText = (date: Date, dateSetup: DateSetup) => {
   try {
@@ -20,6 +20,11 @@ const getMonthText = (date: Date, dateSetup: DateSetup) => {
   } catch (e) {
     return date.toLocaleString("default", { month: "long" });
   }
+};
+
+const capitalizeFirst = (str: string) => {
+  if (!str) return "";
+  return str[0].toUpperCase() + str.slice(1);
 };
 
 const getQuarterText = (date: Date) => {
@@ -44,13 +49,15 @@ export const defaultRenderTopHeader = (
       return date.getFullYear().toString();
 
     case ViewMode.Week:
-      return `${getMonthText(date, dateSetup)}, ${date.getFullYear()}`;
+      return `${getMonthText(date, dateSetup)} ${date.getFullYear()}`;
 
     case ViewMode.TwoDays:
-      return getMonthText(date, dateSetup);
+      return capitalizeFirst(getMonthText(date, dateSetup));
 
     case ViewMode.Day:
-      return getMonthText(date, dateSetup);
+      return `${capitalizeFirst(
+        getMonthText(date, dateSetup)
+      )} ${date.getFullYear()}`;
 
     case ViewMode.QuarterDay:
     case ViewMode.HalfDay:

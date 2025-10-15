@@ -62,6 +62,7 @@ export const BarDisplay: React.FC<BarDisplayProps> = ({
     }
 
     if (isSelected) {
+      console.log("taskName", taskName, styles.barProgressSelectedColor);
       return styles.barProgressSelectedColor;
     }
 

@@ -27,7 +27,6 @@ export const defaultRenderBottomHeader = (
       dateLocale: { formatDistance },
       preStepsCount,
     } = dateSetup;
-
     const offsetFromStart = index - preStepsCount;
 
     if (offsetFromStart === 0) {
