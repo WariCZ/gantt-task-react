@@ -183,7 +183,7 @@ export interface Task {
   displayOrder?: number;
   comparisonLevel?: number;
   description?: JSON | string;
-  updatedTime: number;
+  updatedTime?: number;
   priority?: string;
 }
 
