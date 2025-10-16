@@ -275,9 +275,12 @@ export const Gantt: React.FC<GanttProps> = ({
   useEffect(() => {
     const merged = (tasks as Task[]).map(t => {
       const match = (sortedTasks as Task[]).find(st => st.id === t.id);
+      const hasChildren = tasks.some(st => st.parent === t.id);
       return {
         ...t,
         hideChildren: match ? match.hideChildren : t.hideChildren,
+        hasChildren: hasChildren,
+        isDisabled: t.isDisabled === false ? hasChildren : t.isDisabled,
       };
     });
 
@@ -313,6 +316,7 @@ export const Gantt: React.FC<GanttProps> = ({
       }
     });
 
+    console.log("merged", merged);
     setSortedTasks([...merged].sort(sortTasks));
   }, [tasks]);
 
