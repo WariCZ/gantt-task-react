@@ -311,6 +311,14 @@ export const Gantt: React.FC<GanttProps> = ({
         ) {
           onDateChange("end", task, prev);
         }
+
+        if (
+          prev.progress !== undefined &&
+          task.progress !== undefined &&
+          prev.progress !== task.progress
+        ) {
+          onProgressChange(task);
+        }
       } else {
         return false;
       }
@@ -538,11 +546,11 @@ export const Gantt: React.FC<GanttProps> = ({
         return true;
       }
 
-      if (selectedDay) {
-        const d1 = date.toISOString().slice(0, 10);
-        const d2 = selectedDay.toISOString().slice(0, 10);
-        return d1 === d2;
-      }
+      // if (selectedDay) {
+      //   const d1 = date.toISOString().slice(0, 10);
+      //   const d2 = selectedDay.toISOString().slice(0, 10);
+      //   return d1 === d2;
+      // }
 
       return false;
     },
@@ -1490,7 +1498,7 @@ export const Gantt: React.FC<GanttProps> = ({
         if (movedIdx >= 0) next[movedIdx] = adjustedTask;
 
         const parents = getAllParents(next as Task[], adjustedTask.id);
-        debugger;
+
         const parentItems = fitParentsToChildren([
           ...parents,
           adjustedTask,
@@ -1520,6 +1528,90 @@ export const Gantt: React.FC<GanttProps> = ({
     ]
   );
 
+  type FitProgressOptions = {
+    /** Pokud je true, výpočet progressu zohlední délku trvání (end - start) */
+    weighted?: boolean;
+  };
+
+  const fitParentsProgressToChildren = (
+    items: Task[],
+    options: FitProgressOptions = {}
+  ): Task[] => {
+    const { weighted = false } = options;
+
+    // map id -> task
+    const byId = new Map(items.map(t => [t.id, t]));
+
+    // map parentId -> children
+    const children = new Map<string, string[]>();
+    for (const t of items) {
+      if (t.parent) {
+        const arr = children.get(t.parent) ?? [];
+        arr.push(t.id);
+        children.set(t.parent, arr);
+      }
+    }
+
+    // cache výsledků, aby se každý uzel počítal jen jednou
+    const progressCache = new Map<string, number>();
+
+    // 🔁 rekurzivní výpočet progressu
+    const computeProgress = (id: string): number | null => {
+      const subs = children.get(id);
+
+      // leaf → vrátíme jeho vlastní progress
+      if (!subs || subs.length === 0) {
+        const t = byId.get(id);
+        if (!t) return null;
+        const p = typeof t.progress === "number" ? t.progress : 0;
+        progressCache.set(id, p);
+        return p;
+      }
+
+      let total = 0;
+      let weightSum = 0;
+
+      for (const cid of subs) {
+        const child = byId.get(cid);
+        if (!child) continue;
+
+        const childProgress = progressCache.get(cid) ?? computeProgress(cid);
+        if (typeof childProgress !== "number") continue;
+
+        // Váha = délka trvání (pokud je zapnuto vážení)
+        const weight = weighted
+          ? Math.max(1, child.end.getTime() - child.start.getTime() || 1)
+          : 1;
+
+        total += childProgress * weight;
+        weightSum += weight;
+      }
+
+      if (weightSum === 0) return null;
+
+      const avg = total / weightSum;
+      progressCache.set(id, avg);
+      return avg;
+    };
+
+    // najdeme všechny rooty (bez parenta)
+    const roots = items.filter(t => !t.parent);
+    for (const root of roots) {
+      computeProgress(root.id);
+    }
+
+    // vytvoříme nové items s aktualizovaným progress
+    const newItems = items.map(t => {
+      const cached = progressCache.get(t.id);
+      if (typeof cached === "number" && cached !== t.progress) {
+        return { ...t, progress: cached };
+      }
+      return t;
+    });
+
+    return newItems;
+  };
+
   const onProgressChange = useCallback(
     (task: Task) => {
       const [dependentTasks, taskIndexes] = getMetadata({
@@ -1529,13 +1621,26 @@ export const Gantt: React.FC<GanttProps> = ({
 
       const taskIndex = taskIndexes[0].index;
 
-      if (onProgressChangeProp) {
+      if (onProgressChangeProp && !onChangeTasks) {
         onProgressChangeProp(task, dependentTasks, taskIndex);
       }
 
+      let parentItems: Task[] = [];
+      if (task.parent) {
+        let parents = getAllParents(tasks as Task[], task.id);
+        parents = parents.map(item => (item.id === task.id ? task : item));
+        parentItems = fitParentsProgressToChildren(parents);
+      }
+
       if (onChangeTasks) {
-        const nextTasks = [...tasks];
-        nextTasks[taskIndex] = task;
+        let nextTasks = [...tasks];
+
+        nextTasks = nextTasks.map(item => {
+          const updated = parentItems.find(p => p.id === item.id);
+          return updated ? updated : item;
+        });
+
+        // nextTasks[taskIndex] = task;
         onChangeTasks(nextTasks, {
           type: "progress_change",
         });
@@ -1799,6 +1904,7 @@ export const Gantt: React.FC<GanttProps> = ({
         return;
       }
 
+      console.log("handleMoveTasksInside");
       onChangeTooltipTask(null, null);
 
       const { comparisonLevel = 1 } = parent;

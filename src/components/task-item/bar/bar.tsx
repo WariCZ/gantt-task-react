@@ -66,10 +66,11 @@ export const Bar: React.FC<
   );
 
   const progressPoint = getProgressPoint(
-    +!rtl * progressWidth + progressX,
+    +!rtl * (progressWidth || 0) + progressX,
     taskYOffset,
     taskHeight
   );
+
   const handleHeight = taskHeight - 2;
 
   let barDisplay = null;
