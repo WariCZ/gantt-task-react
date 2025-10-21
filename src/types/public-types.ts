@@ -186,7 +186,7 @@ export interface Task {
    * From 0 to 100
    */
   progress: number;
-  assignee?: { value: string; label: string };
+  assignee?: { value: string; label: string } | string;
   styles?: Partial<ColorStyles>;
   isDisabled?: boolean;
   isRelationDisabled?: boolean;

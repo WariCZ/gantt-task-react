@@ -48,6 +48,7 @@ export const BarSmall: React.FC<
     >
       <BarDisplay
         taskName={task.name}
+        taskColors={task.colors}
         barCornerRadius={barCornerRadius}
         hasChildren={hasChildren}
         height={taskHeight}
