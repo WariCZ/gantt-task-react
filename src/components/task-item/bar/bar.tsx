@@ -78,6 +78,7 @@ export const Bar: React.FC<
     barDisplay = (
       <ProjectDisplay
         taskName={task.name}
+        taskColors={task.colors}
         x1={x1}
         x2={x2}
         taskYOffset={taskYOffset}
@@ -98,6 +99,7 @@ export const Bar: React.FC<
     barDisplay = (
       <BarDisplay
         taskName={task.name}
+        taskColors={task.colors}
         x={x1}
         y={taskYOffset}
         width={width}

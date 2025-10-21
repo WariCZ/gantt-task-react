@@ -42,6 +42,7 @@ const TaskListTableDefaultInner: React.FC<TaskListTableProps> = ({
   selectedIdsMirror,
   tasks,
   readOnly,
+  dropRules,
 }) => {
   const renderedTasks = useMemo(
     /**
@@ -121,6 +122,7 @@ const TaskListTableDefaultInner: React.FC<TaskListTableProps> = ({
           tasks={tasks}
           draggedTask={draggedTask}
           setDraggedTask={setDraggedTask}
+          dropRules={dropRules}
         />
       );
     }

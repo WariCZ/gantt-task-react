@@ -241,6 +241,9 @@ export const Gantt: React.FC<GanttProps> = ({
   allowedTypesForFitMove = ["project"],
   style,
   initDate,
+  fitProgressToParent,
+  fitStartEndToParent,
+  dropRules,
 }) => {
   const ganttSVGRef = useRef<SVGSVGElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -280,7 +283,7 @@ export const Gantt: React.FC<GanttProps> = ({
         ...t,
         hideChildren: match ? match.hideChildren : t.hideChildren,
         hasChildren: hasChildren,
-        isDisabled: t.isDisabled === false ? hasChildren : t.isDisabled,
+        // isDisabled: t.isDisabled === false ? hasChildren : t.isDisabled,
       };
     });
 
@@ -1497,19 +1500,19 @@ export const Gantt: React.FC<GanttProps> = ({
         const movedIdx = idxOf(originalTask);
         if (movedIdx >= 0) next[movedIdx] = adjustedTask;
 
-        const parents = getAllParents(next as Task[], adjustedTask.id);
+        if (fitStartEndToParent) {
+          const parents = getAllParents(next as Task[], adjustedTask.id);
 
-        const parentItems = fitParentsToChildren([
-          ...parents,
-          adjustedTask,
-        ] as Task[]);
+          const parentItems = fitParentsToChildren([
+            ...parents,
+            adjustedTask,
+          ] as Task[]);
 
-        next = next.map(item => {
-          const updated = parentItems.find(p => p.id === item.id);
-          return updated ? updated : item;
-        });
-
-        // next = fitParentsToChildren(next as Task[]);
+          next = next.map(item => {
+            const updated = parentItems.find(p => p.id === item.id);
+            return updated ? updated : item;
+          });
+        }
 
         onChangeTasks(next, { type: "date_change_cascade" });
       }
@@ -1626,20 +1629,23 @@ export const Gantt: React.FC<GanttProps> = ({
       }
 
       let parentItems: Task[] = [];
-      if (task.parent) {
-        let parents = getAllParents(tasks as Task[], task.id);
-        parents = parents.map(item => (item.id === task.id ? task : item));
-        parentItems = fitParentsProgressToChildren(parents);
+      if (fitProgressToParent) {
+        if (task.parent) {
+          let parents = getAllParents(tasks as Task[], task.id);
+          parents = parents.map(item => (item.id === task.id ? task : item));
+          parentItems = fitParentsProgressToChildren(parents);
+        }
       }
 
       if (onChangeTasks) {
         let nextTasks = [...tasks];
 
-        nextTasks = nextTasks.map(item => {
-          const updated = parentItems.find(p => p.id === item.id);
-          return updated ? updated : item;
-        });
-
+        if (fitProgressToParent) {
+          nextTasks = nextTasks.map(item => {
+            const updated = parentItems.find(p => p.id === item.id);
+            return updated ? updated : item;
+          });
+        }
         // nextTasks[taskIndex] = task;
         onChangeTasks(nextTasks, {
           type: "progress_change",
@@ -2526,6 +2532,7 @@ export const Gantt: React.FC<GanttProps> = ({
     onExpandFirstLevel,
     onExpandAll,
     readOnly,
+    dropRules,
   };
 
   const displayTable = !columnsProp || columnsProp.length > 0;
@@ -2551,7 +2558,6 @@ export const Gantt: React.FC<GanttProps> = ({
       {displayTable && (
         <TaskList {...tableProps} handleAddTask={handleAddTask} />
       )}
-
       <TaskGantt
         barProps={barProps}
         calendarProps={calendarProps}

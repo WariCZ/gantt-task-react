@@ -18,6 +18,21 @@ export enum ViewMode {
   Year = "Year",
 }
 
+export type DropRulesType = {
+  canDropInside?: (
+    task: TaskOrEmpty,
+    draggedTask: TaskOrEmpty
+  ) => boolean | void;
+  canDropAfter?: (
+    task: TaskOrEmpty,
+    draggedTask: TaskOrEmpty
+  ) => boolean | void;
+  canDropBefore?: (
+    task: TaskOrEmpty,
+    draggedTask: TaskOrEmpty
+  ) => boolean | void;
+};
+
 export interface DateSetup {
   dateFormats: DateFormats;
   dateLocale: DateLocale;
@@ -114,7 +129,7 @@ export interface ColorStyles {
   selectedDayBgColor: string;
   selectedDayStrokeColor: string;
 }
-
+export type PartialColorStyles = Partial<ColorStyles>;
 /**
  * date-fns formats
  */
@@ -161,6 +176,7 @@ export interface Distances {
 export type TaskType = "task" | "milestone" | "project";
 
 export interface Task {
+  externalId?: string;
   id: string;
   type: TaskType;
   name: string;
@@ -170,7 +186,7 @@ export interface Task {
    * From 0 to 100
    */
   progress: number;
-  assignee?: string[];
+  assignee?: { value: string; label: string };
   styles?: Partial<ColorStyles>;
   isDisabled?: boolean;
   isRelationDisabled?: boolean;
@@ -184,7 +200,8 @@ export interface Task {
   comparisonLevel?: number;
   description?: JSON | string;
   updatedTime?: number;
-  priority?: string;
+  priority?: number;
+  colors?: PartialColorStyles;
 }
 
 export interface EmptyTask {
@@ -628,6 +645,9 @@ export interface GanttProps extends EventOption, DisplayOption, StylingOption {
   allowedTypesForFitMove?: ("project" | "task")[];
   style?: React.CSSProperties;
   initDate?: Date;
+  fitProgressToParent?: boolean;
+  fitStartEndToParent?: boolean;
+  dropRules?: DropRulesType;
 }
 
 export interface TaskListTableProps {
@@ -668,6 +688,7 @@ export interface TaskListTableProps {
   tasks: readonly TaskOrEmpty[];
   handleAddTask: (task?: Task) => void;
   readOnly: boolean;
+  dropRules?: DropRulesType;
 }
 
 export interface TaskListHeaderProps extends TaskListHeaderActionsProps {

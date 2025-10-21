@@ -8,6 +8,7 @@ import {
   DateSetup,
   DependencyMap,
   Distances,
+  DropRulesType,
   Icons,
   Task,
   TaskOrEmpty,
@@ -53,6 +54,7 @@ type TaskListTableRowProps = {
   tasks: readonly TaskOrEmpty[];
   draggedTask: TaskOrEmpty;
   setDraggedTask: React.Dispatch<any>;
+  dropRules: DropRulesType;
 };
 
 const TaskListTableRowInner: React.FC<TaskListTableRowProps> = ({
@@ -89,6 +91,7 @@ const TaskListTableRowInner: React.FC<TaskListTableRowProps> = ({
   tasks,
   draggedTask,
   setDraggedTask,
+  dropRules,
 }) => {
   const { id, comparisonLevel = 1 } = task;
 
@@ -253,6 +256,12 @@ const TaskListTableRowInner: React.FC<TaskListTableRowProps> = ({
     let canDropBefore = false;
 
     if (draggedTask) {
+      if (dropRules && dropRules.canDropBefore) {
+        const ret = dropRules.canDropBefore(task, draggedTask);
+        if (ret === false) {
+          return false;
+        }
+      }
       const hoveringOnBrother =
         draggedTask.parent === task.parent &&
         tasks.findIndex(t => t.id === draggedTask.id) ===
@@ -279,6 +288,13 @@ const TaskListTableRowInner: React.FC<TaskListTableRowProps> = ({
     let canDropAfter = false;
 
     if (draggedTask) {
+      if (dropRules && dropRules.canDropAfter) {
+        const ret = dropRules.canDropAfter(task, draggedTask);
+        if (ret === false) {
+          return false;
+        }
+      }
+
       const hoveringOnBrother =
         draggedTask.parent === task.parent &&
         tasks.findIndex(t => t.id === draggedTask.id) ===
@@ -303,6 +319,12 @@ const TaskListTableRowInner: React.FC<TaskListTableRowProps> = ({
 
   const canDropInside = (): boolean => {
     let canDropInside = false;
+    if (dropRules && dropRules.canDropInside) {
+      const ret = dropRules.canDropInside(task, draggedTask);
+      if (ret === false) {
+        return false;
+      }
+    }
     if (task.type !== "empty" && task.type !== "milestone") {
       if (draggedTask) {
         if (!isDraggedTaskAncestorOfDropTarget(draggedTask)) {
@@ -389,7 +411,6 @@ const TaskListTableRowInner: React.FC<TaskListTableRowProps> = ({
           </div>
         );
       })}
-
       <div
         data-testid={`table-row-drop-before-${task.name}`}
         className={`${styles.dropBefore} ${

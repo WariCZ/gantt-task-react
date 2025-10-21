@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 
 import styles from "./project.module.css";
-import { ColorStyles } from "../../../types/public-types";
+import { ColorStyles, PartialColorStyles } from "../../../types/public-types";
 
 type ProjectDisplayProps = {
   barCornerRadius: number;
@@ -17,6 +17,7 @@ type ProjectDisplayProps = {
   startMoveFullTask: (clientX: number) => void;
   taskName: string;
   colorStyles: ColorStyles;
+  taskColors: PartialColorStyles;
   width: number;
   x1: number;
   x2: number;
@@ -37,37 +38,39 @@ export const ProjectDisplay: React.FC<ProjectDisplayProps> = ({
   x1,
   x2,
   startMoveFullTask,
+  taskColors,
 }) => {
+  const stylesMerged = { ...colorStyles, ...taskColors };
   const barColor = useMemo(() => {
     if (isCritical) {
       if (isSelected) {
-        return colorStyles.projectBackgroundSelectedCriticalColor;
+        return stylesMerged.projectBackgroundSelectedCriticalColor;
       }
 
-      return colorStyles.projectBackgroundCriticalColor;
+      return stylesMerged.projectBackgroundCriticalColor;
     }
 
     if (isSelected) {
-      return colorStyles.projectBackgroundSelectedColor;
+      return stylesMerged.projectBackgroundSelectedColor;
     }
 
-    return colorStyles.projectBackgroundColor;
+    return stylesMerged.projectBackgroundColor;
   }, [isSelected, isCritical, colorStyles]);
 
   const processColor = useMemo(() => {
     if (isCritical) {
       if (isSelected) {
-        return colorStyles.projectProgressSelectedCriticalColor;
+        return stylesMerged.projectProgressSelectedCriticalColor;
       }
 
-      return colorStyles.projectProgressCriticalColor;
+      return stylesMerged.projectProgressCriticalColor;
     }
 
     if (isSelected) {
-      return colorStyles.projectProgressSelectedColor;
+      return stylesMerged.projectProgressSelectedColor;
     }
 
-    return colorStyles.projectProgressColor;
+    return stylesMerged.projectProgressColor;
   }, [isSelected, isCritical, colorStyles]);
 
   const projectLeftTriangle = [

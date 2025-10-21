@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 
-import { ColorStyles } from "../../../types/public-types";
+import { ColorStyles, PartialColorStyles } from "../../../types/public-types";
 
 import style from "./bar.module.css";
 
@@ -15,6 +15,7 @@ type BarDisplayProps = {
   progressX: number;
   startMoveFullTask: (clientX: number) => void;
   styles: ColorStyles;
+  taskColors: PartialColorStyles;
   taskName: string;
   width: number;
   x: number;
@@ -23,6 +24,7 @@ type BarDisplayProps = {
 
 export const BarDisplay: React.FC<BarDisplayProps> = ({
   taskName,
+  taskColors,
   barCornerRadius,
   isCritical,
   isSelected,
@@ -36,68 +38,70 @@ export const BarDisplay: React.FC<BarDisplayProps> = ({
   x,
   y,
 }) => {
+  const stylesMerged = { ...styles, ...taskColors };
+
   const processColor = useMemo(() => {
     if (isCritical) {
       if (hasChildren) {
         if (isSelected) {
-          return styles.groupProgressSelectedCriticalColor;
+          return stylesMerged.groupProgressSelectedCriticalColor;
         }
 
-        return styles.groupProgressCriticalColor;
+        return stylesMerged.groupProgressCriticalColor;
       }
 
       if (isSelected) {
-        return styles.barProgressSelectedCriticalColor;
+        return stylesMerged.barProgressSelectedCriticalColor;
       }
 
-      return styles.barProgressCriticalColor;
+      return stylesMerged.barProgressCriticalColor;
     }
 
     if (hasChildren) {
       if (isSelected) {
-        return styles.groupProgressSelectedColor;
+        return stylesMerged.groupProgressSelectedColor;
       }
 
-      return styles.groupProgressColor;
+      return stylesMerged.groupProgressColor;
     }
 
     if (isSelected) {
-      return styles.barProgressSelectedColor;
+      return stylesMerged.barProgressSelectedColor;
     }
 
-    return styles.barProgressColor;
+    return stylesMerged.barProgressColor;
   }, [isSelected, isCritical, hasChildren, styles]);
 
   const barColor = useMemo(() => {
     if (isCritical) {
       if (hasChildren) {
         if (isSelected) {
-          return styles.groupBackgroundSelectedCriticalColor;
+          return stylesMerged.groupBackgroundSelectedCriticalColor;
         }
 
-        return styles.groupBackgroundCriticalColor;
+        return stylesMerged.groupBackgroundCriticalColor;
       }
 
       if (isSelected) {
-        return styles.barBackgroundSelectedCriticalColor;
+        return stylesMerged.barBackgroundSelectedCriticalColor;
       }
 
-      return styles.barBackgroundCriticalColor;
+      return stylesMerged.barBackgroundCriticalColor;
     }
 
     if (hasChildren) {
       if (isSelected) {
-        return styles.groupBackgroundSelectedColor;
+        return stylesMerged.groupBackgroundSelectedColor;
       }
 
-      return styles.groupBackgroundColor;
+      return stylesMerged.groupBackgroundColor;
     }
 
     if (isSelected) {
-      return styles.barBackgroundSelectedColor;
+      return stylesMerged.barBackgroundSelectedColor;
     }
 
-    return styles.barBackgroundColor;
+    return stylesMerged.barBackgroundColor;
   }, [isSelected, isCritical, hasChildren, styles]);
 
   return (

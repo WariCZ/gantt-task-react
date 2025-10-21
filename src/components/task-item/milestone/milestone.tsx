@@ -23,6 +23,7 @@ export const Milestone: React.FC<
   colorStyles,
   x1,
 }) => {
+  const stylesMerged = { ...styles, ...task.colors };
   const rotatedHeight = taskHeight / 1.414;
 
   const transform = `rotate(45 ${x1 + rotatedHeight * 0.356} 
@@ -31,17 +32,17 @@ export const Milestone: React.FC<
   const barColor = useMemo(() => {
     if (isCritical) {
       if (isSelected) {
-        return colorStyles.milestoneBackgroundSelectedCriticalColor;
+        return stylesMerged.milestoneBackgroundSelectedCriticalColor;
       }
 
-      return colorStyles.milestoneBackgroundCriticalColor;
+      return stylesMerged.milestoneBackgroundCriticalColor;
     }
 
     if (isSelected) {
-      return colorStyles.milestoneBackgroundSelectedColor;
+      return stylesMerged.milestoneBackgroundSelectedColor;
     }
 
-    return colorStyles.milestoneBackgroundColor;
+    return stylesMerged.milestoneBackgroundColor;
   }, [isSelected, isCritical, colorStyles]);
 
   return (

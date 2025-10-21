@@ -13,6 +13,7 @@ import {
   DateSetup,
   DependencyMap,
   Distances,
+  DropRulesType,
   Icons,
   MapTaskToNestedIndex,
   OnResizeColumn,
@@ -31,6 +32,7 @@ import { TaskListHeaderActionsProps } from "./TaskListHeaderActions";
 // const SCROLL_DELAY = 25;
 
 export type TaskListProps = {
+  dropRules?: DropRulesType;
   canMoveTasks: boolean;
   readOnly: boolean;
   canResizeColumns: boolean;
@@ -118,6 +120,7 @@ const TaskListInner: React.FC<TaskListProps & TaskListHeaderActionsProps> = ({
   onExpandFirstLevel,
   onExpandAll,
   readOnly,
+  dropRules,
 }) => {
   // Manage the column and list table resizing
   const [
@@ -172,6 +175,7 @@ const TaskListInner: React.FC<TaskListProps & TaskListHeaderActionsProps> = ({
             }}
           >
             <TaskListTable
+              dropRules={dropRules}
               canMoveTasks={canMoveTasks}
               childTasksMap={childTasksMap}
               colors={colors}
