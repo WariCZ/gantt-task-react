@@ -1624,8 +1624,10 @@ export const Gantt: React.FC<GanttProps> = ({
 
       const taskIndex = taskIndexes[0].index;
 
-      if (onProgressChangeProp && !onChangeTasks) {
+      // if (!fitProgressToParent && onProgressChangeProp && !onChangeTasks) {
+      if (onProgressChangeProp && (!onChangeTasks || !fitProgressToParent)) {
         onProgressChangeProp(task, dependentTasks, taskIndex);
+        return;
       }
 
       let parentItems: Task[] = [];
@@ -1637,14 +1639,15 @@ export const Gantt: React.FC<GanttProps> = ({
         }
       }
 
+      let nextTasks = [...tasks];
       if (onChangeTasks) {
-        let nextTasks = [...tasks];
-
         if (fitProgressToParent) {
           nextTasks = nextTasks.map(item => {
             const updated = parentItems.find(p => p.id === item.id);
             return updated ? updated : item;
           });
+        } else {
+          nextTasks[taskIndex] = task;
         }
         // nextTasks[taskIndex] = task;
         onChangeTasks(nextTasks, {
@@ -2545,7 +2548,10 @@ export const Gantt: React.FC<GanttProps> = ({
       tabIndex={0}
       ref={wrapperRef}
       data-testid={`gantt-main`}
-      onMouseDownCapture={() => {
+      onMouseDownCapture={e => {
+        if ((e.target as HTMLElement).tagName === "BUTTON") {
+          return;
+        }
         resetSelectedTasks();
       }}
       style={{

@@ -23,7 +23,7 @@ export const Milestone: React.FC<
   colorStyles,
   x1,
 }) => {
-  const stylesMerged = { ...styles, ...task.colors };
+  const stylesMerged = { ...colorStyles, ...task.colors };
   const rotatedHeight = taskHeight / 1.414;
 
   const transform = `rotate(45 ${x1 + rotatedHeight * 0.356} 
