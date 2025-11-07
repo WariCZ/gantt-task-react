@@ -317,6 +317,7 @@ export const useTaskDrag = ({
           return null;
         }
 
+        console.log("recountOnMove", task);
         const [nextCoordinates, coordinatesDiff] = getNextCoordinates(
           task,
           prevValue,
@@ -550,7 +551,7 @@ export const useTaskDrag = ({
       const cursor = point.matrixTransform(svgNode.getScreenCTM()?.inverse());
 
       const nextX = cursor.x;
-
+      console.log("Call recountOnMove");
       recountOnMove(nextX);
     };
 
@@ -570,6 +571,7 @@ export const useTaskDrag = ({
     };
 
     const handleUp = async (event: Event) => {
+      console.log("handleUp");
       const changeInProgressLatest = changeInProgress;
 
       if (!changeInProgressLatest || !point) {

@@ -202,6 +202,8 @@ export interface Task {
   updatedTime?: number;
   priority?: number;
   colors?: PartialColorStyles;
+  hasChildren?: boolean;
+  _invalidDate?: "start" | "end";
 }
 
 export interface EmptyTask {
@@ -646,7 +648,14 @@ export interface GanttProps extends EventOption, DisplayOption, StylingOption {
   style?: React.CSSProperties;
   initDate?: Date;
   fitProgressToParent?: boolean;
-  fitStartEndToParent?: boolean;
+  fitStartEndToItems?: (props: {
+    next: Task[];
+    adjustedTask: Task;
+    originalTask: Task;
+    options?: {
+      allowedTypesForFitMove?: ("project" | "task")[];
+    };
+  }) => Task[];
   dropRules?: DropRulesType;
 }
 

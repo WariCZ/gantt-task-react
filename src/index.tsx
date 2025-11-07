@@ -15,3 +15,4 @@ export * from "./constants";
 
 export { ViewMode } from "./types/public-types";
 export * from "./types/public-types";
+export { getAllParents } from "./components/other/getAllParents";

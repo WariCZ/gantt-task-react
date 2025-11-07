@@ -97,13 +97,60 @@ export const useGetTaskCurrentState = ({
             tasksMap
           )
         ) {
-          const { tsDiff } = changeInProgress;
+          const roundedTaskParentOriginal = roundTaskDates(
+            changeInProgress.originalTask,
+            roundDate,
+            changeInProgress.action,
+            dateMoveStep
+          );
+          const roundedTaskParentChangedTask = roundTaskDates(
+            changeInProgress.changedTask,
+            roundDate,
+            changeInProgress.action,
+            dateMoveStep
+          );
 
+          console.log(
+            "Children",
+            checkIsDescendant(
+              changeInProgress.originalTask,
+              currentOriginalTask,
+              tasksMap
+            ),
+            // roundedTaskParentOriginal.start,
+            roundedTaskParentChangedTask.start
+            // roundedTaskParentOriginal.start !==
+            //   roundedTaskParentChangedTask.start,
+            // changeInProgress.changedTask,
+            // changeInProgress.originalTask
+          );
+          if (
+            changeInProgress.changedTask.start ===
+              changeInProgress.originalTask.start &&
+            changeInProgress.changedTask.end ===
+              changeInProgress.originalTask.end
+          ) {
+            // debugger;
+            return currentOriginalTask;
+          }
+
+          const { tsDiff } = changeInProgress;
+          console.log("tsDiff", changeInProgress.originalTask.id, tsDiff);
           const movedTask: Task = {
             ...currentOriginalTask,
             end: addMilliseconds(currentOriginalTask.end, tsDiff),
             start: addMilliseconds(currentOriginalTask.start, tsDiff),
           };
+
+          // const myDiff =
+          //   roundedTaskParentChangedTask.start.getTime() -
+          //   roundedTaskParentOriginal.start.getTime();
+          // console.log("myDiff", myDiff, myDiff / 86400000);
+          // const movedTask: Task = {
+          //   ...currentOriginalTask,
+          //   end: addMilliseconds(currentOriginalTask.end, myDiff),
+          //   start: addMilliseconds(currentOriginalTask.start, myDiff),
+          // };
 
           const roundedTask = roundTaskDates(
             movedTask,

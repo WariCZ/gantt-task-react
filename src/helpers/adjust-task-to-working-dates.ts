@@ -38,6 +38,7 @@ export const adjustTaskToWorkingDates = ({
   originalTask,
   dateMoveStep,
 }: AdjustTaskToWorkingDatesParams) => {
+  if (changedTask.externalId === "ITG-54") console.log();
   switch (changedTask.type) {
     case "milestone":
       if (
