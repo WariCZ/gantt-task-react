@@ -83,6 +83,11 @@ import { useHolidays } from "./use-holidays";
 import styles from "./gantt.module.css";
 import { getDateFromX, getXCoordinateFromDate } from "../../helpers/bar-helper";
 import { getAllParents } from "../other/getAllParents";
+import {
+  addWorkingTime,
+  getBusinessDaysBetween,
+  // workingDaysDiff,
+} from "../other/getBusinessDaysBetween";
 // import { createWorkingCalendar } from "../../helpers/workingCalendar";
 
 export const defaultColors: ColorStyles = {
@@ -1325,9 +1330,14 @@ export const Gantt: React.FC<GanttProps> = ({
         return;
       }
 
-      const deltaStart =
-        adjustedTask.start.getTime() - originalTask.start.getTime();
-      const deltaEnd = adjustedTask.end.getTime() - originalTask.end.getTime();
+      // const deltaStart =
+      //   adjustedTask.start.getTime() - originalTask.start.getTime();
+      console.log("DDDDD", originalTask.start, adjustedTask.start);
+      const deltaStart = getBusinessDaysBetween(
+        originalTask.start,
+        adjustedTask.start
+      );
+      // const deltaEnd = adjustedTask.end.getTime() - originalTask.end.getTime();
       const cascadeSet = collectCascadeSet(originalTask);
       console.log("------------------");
       const draft = [...tasks];
@@ -1337,11 +1347,35 @@ export const Gantt: React.FC<GanttProps> = ({
       cascadeSet.forEach(t => {
         const idx = idxOf(t);
         if (idx >= 0) {
-          draft[idx] = {
-            ...t,
-            start: new Date(t.start.getTime() + deltaStart),
-            end: new Date(t.end.getTime() + deltaEnd),
-          };
+          if (t.id === "SVB-138")
+            console.log(
+              "Task",
+              t.id,
+              t.start,
+              adjustedTask.start,
+              deltaStart / 86400000,
+              addWorkingTime(t.start, deltaStart)
+            );
+          const x = adjustTaskToWorkingDates({
+            action,
+            changedTask: {
+              ...t,
+              // start: new Date(t.start.getTime() + deltaStart),
+              // end: new Date(t.end.getTime() + deltaStart),
+              start: addWorkingTime(t.start, deltaStart),
+              end: addWorkingTime(t.end, deltaStart),
+            },
+            originalTask: t,
+            roundDate,
+          });
+          if (t.id === "SVB-138") console.log("X", x);
+          draft[idx] = x;
+
+          // draft[idx] = {
+          //   ...t,
+          //   start: new Date(t.start.getTime() + deltaStart),
+          //   end: new Date(t.end.getTime() + deltaEnd),
+          // };
           movedIdxs.add(idx);
         }
       });
@@ -1377,18 +1411,20 @@ export const Gantt: React.FC<GanttProps> = ({
               //   end: new Date(t.end.getTime() + deltaStart),
               // };
 
-              const a = {
+              next[idx] = {
                 ...t,
-                start: new Date(t.start.getTime() + deltaStart),
-                end: new Date(t.end.getTime() + deltaStart),
+                // start: new Date(t.start.getTime() + deltaStart),
+                // end: new Date(t.end.getTime() + deltaStart),
+                start: addWorkingTime(t.start, deltaStart),
+                end: addWorkingTime(t.end, deltaStart),
               };
 
-              next[idx] = adjustTaskToWorkingDates({
-                action,
-                changedTask: a,
-                originalTask: t,
-                roundDate,
-              });
+              // next[idx] = adjustTaskToWorkingDates({
+              //   action,
+              //   changedTask: a,
+              //   originalTask: t,
+              //   roundDate,
+              // });
             }
           }
         });
