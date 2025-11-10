@@ -1333,10 +1333,10 @@ export const Gantt: React.FC<GanttProps> = ({
       // const deltaStart =
       //   adjustedTask.start.getTime() - originalTask.start.getTime();
       console.log("DDDDD", originalTask.start, adjustedTask.start);
-      const deltaStart = getBusinessDaysBetween(
-        originalTask.start,
-        adjustedTask.start
-      );
+      const deltaStart =
+        action === "move"
+          ? getBusinessDaysBetween(originalTask.start, adjustedTask.start)
+          : 0;
       // const deltaEnd = adjustedTask.end.getTime() - originalTask.end.getTime();
       const cascadeSet = collectCascadeSet(originalTask);
       console.log("------------------");
@@ -1347,16 +1347,7 @@ export const Gantt: React.FC<GanttProps> = ({
       cascadeSet.forEach(t => {
         const idx = idxOf(t);
         if (idx >= 0) {
-          if (t.id === "SVB-138")
-            console.log(
-              "Task",
-              t.id,
-              t.start,
-              adjustedTask.start,
-              deltaStart / 86400000,
-              addWorkingTime(t.start, deltaStart)
-            );
-          const x = adjustTaskToWorkingDates({
+          draft[idx] = adjustTaskToWorkingDates({
             action,
             changedTask: {
               ...t,
@@ -1368,14 +1359,7 @@ export const Gantt: React.FC<GanttProps> = ({
             originalTask: t,
             roundDate,
           });
-          if (t.id === "SVB-138") console.log("X", x);
-          draft[idx] = x;
 
-          // draft[idx] = {
-          //   ...t,
-          //   start: new Date(t.start.getTime() + deltaStart),
-          //   end: new Date(t.end.getTime() + deltaEnd),
-          // };
           movedIdxs.add(idx);
         }
       });
@@ -1403,14 +1387,7 @@ export const Gantt: React.FC<GanttProps> = ({
         movedIdxs.forEach(idx => {
           if (!byIndex.has(idx)) {
             const t = next[idx] as Task;
-            // debugger;
             if (adjustedTask.id !== t.id) {
-              // next[idx] = {
-              //   ...t,
-              //   start: new Date(t.start.getTime() + deltaStart),
-              //   end: new Date(t.end.getTime() + deltaStart),
-              // };
-
               next[idx] = {
                 ...t,
                 // start: new Date(t.start.getTime() + deltaStart),
@@ -1418,13 +1395,6 @@ export const Gantt: React.FC<GanttProps> = ({
                 start: addWorkingTime(t.start, deltaStart),
                 end: addWorkingTime(t.end, deltaStart),
               };
-
-              // next[idx] = adjustTaskToWorkingDates({
-              //   action,
-              //   changedTask: a,
-              //   originalTask: t,
-              //   roundDate,
-              // });
             }
           }
         });
