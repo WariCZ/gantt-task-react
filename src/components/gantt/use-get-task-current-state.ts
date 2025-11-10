@@ -17,10 +17,7 @@ import type {
   TaskMapByLevel,
 } from "../../types/public-types";
 import { roundTaskDates } from "../../helpers/round-task-dates";
-import {
-  addWorkingTime,
-  getBusinessDaysBetween,
-} from "../other/getBusinessDaysBetween";
+import { getBusinessDaysBetween } from "../other/getBusinessDaysBetween";
 
 type UseGetTaskCurrentStateParams = {
   adjustTaskToWorkingDates: (params: AdjustTaskToWorkingDatesParams) => Task;
