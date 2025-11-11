@@ -1038,7 +1038,6 @@ export const Gantt: React.FC<GanttProps> = ({
       if (!onEditTaskClick && (!onEditTask || !onChangeTasks)) {
         return;
       }
-
       const { id, comparisonLevel = 1 } = task;
 
       const indexesOnLevel = mapTaskToGlobalIndex.get(comparisonLevel);
@@ -1405,6 +1404,7 @@ export const Gantt: React.FC<GanttProps> = ({
         if (fitStartEndToItems) {
           next = fitStartEndToItems({
             next: next as Task[],
+            originalTasks: tasks as Task[],
             adjustedTask,
             originalTask,
             options: {

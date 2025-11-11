@@ -650,6 +650,7 @@ export interface GanttProps extends EventOption, DisplayOption, StylingOption {
   fitProgressToParent?: boolean;
   fitStartEndToItems?: (props: {
     next: Task[];
+    originalTasks: Task[];
     adjustedTask: Task;
     originalTask: Task;
     options?: {
