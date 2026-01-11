@@ -1,5 +1,5 @@
 .ganttTaskRoot {
-  display:flex;
+  display: flex;
   flex-direction: column;
   overflow-x: scroll;
   overflow-y: hidden;
@@ -8,7 +8,7 @@
   padding: 0;
 }
 /* Only chrome otherwise the firefox scrollbar has no edge*/
-@media screen and (-webkit-min-device-pixel-ratio:0) and (min-resolution:.001dpcm) {
+@media screen and (-webkit-min-device-pixel-ratio: 0) and (min-resolution: 0.001dpcm) {
   .ganttTaskRoot {
     scrollbar-width: thin;
   }
@@ -45,14 +45,14 @@
   overflow-y: auto;
 }
 /* Only chrome otherwise the firefox scrollbar has no edges*/
-@media screen and (-webkit-min-device-pixel-ratio:0) and (min-resolution:.001dpcm) {
+@media screen and (-webkit-min-device-pixel-ratio: 0) and (min-resolution: 0.001dpcm) {
   .ganttTaskContent {
     scrollbar-width: thin;
   }
 }
 
 .wrapper {
-  display:grid;
+  display: grid;
   overflow-x: hidden;
   overflow-y: hidden;
   padding: 0;
@@ -60,4 +60,15 @@
   list-style: none;
   outline: none;
   position: relative;
+}
+
+/* Cursor stability during drag operations */
+:global(body[data-gantt-drag-cursor="grabbing"]),
+:global(body[data-gantt-drag-cursor="grabbing"] *) {
+  cursor: grabbing !important;
+}
+
+:global(body[data-gantt-drag-cursor="ew-resize"]),
+:global(body[data-gantt-drag-cursor="ew-resize"] *) {
+  cursor: ew-resize !important;
 }
