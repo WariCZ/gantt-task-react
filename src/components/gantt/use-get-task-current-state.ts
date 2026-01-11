@@ -7,52 +7,32 @@ import minDate from "date-fns/min";
 import { checkIsDescendant } from "../../helpers/check-is-descendant";
 
 import type {
-  AdjustTaskToWorkingDatesParams,
-  BarMoveAction,
   ChangeInProgress,
-  DateExtremity,
-  GanttDateRounding,
-  MapTaskToCoordinates,
   Task,
   TaskMapByLevel,
 } from "../../types/public-types";
-import { roundTaskDates } from "../../helpers/round-task-dates";
 
 type UseGetTaskCurrentStateParams = {
-  adjustTaskToWorkingDates: (params: AdjustTaskToWorkingDatesParams) => Task;
   changeInProgress: ChangeInProgress | null;
-  isAdjustToWorkingDates: boolean;
   isMoveChildsWithParent: boolean;
   isUpdateDisabledParentsOnChange: boolean;
-  mapTaskToCoordinates: MapTaskToCoordinates;
-  roundDate: (
-    date: Date,
-    action: BarMoveAction,
-    dateExtremity: DateExtremity
-  ) => Date;
   tasksMap: TaskMapByLevel;
-  dateMoveStep: GanttDateRounding;
 };
 
 export const useGetTaskCurrentState = ({
-  adjustTaskToWorkingDates,
   changeInProgress,
-  isAdjustToWorkingDates,
   isMoveChildsWithParent,
   isUpdateDisabledParentsOnChange,
-  mapTaskToCoordinates,
-  roundDate,
   tasksMap,
-  dateMoveStep,
 }: UseGetTaskCurrentStateParams) => {
   const getTaskCurrentState = useCallback(
     (currentOriginalTask: Task): Task => {
       // ----------------------------------------------------------
       // The aim of getTaskCurrentState is to return the task to display in real time
-      //  + currentOriginalTask is the task as it was before begining to change it
-      //  + changeInProgress.changedTask is the task that corresponds to the exact move on the full task or the start/end date handlers
-      //  + the task is then rounded
-      //  + and then ajusted to working days if required
+      //  + currentOriginalTask is the task as it was before beginning to change it
+      //  + changeInProgress.changedTask is the task that corresponds to the exact move
+      //  + This function returns unrounded task for smooth visual preview during drag
+      //  + Date rounding and working day adjustment is applied on drop in use-task-drag.ts
 
       const taskIsChanged =
         changeInProgress &&
@@ -61,29 +41,13 @@ export const useGetTaskCurrentState = ({
 
       if (taskIsChanged) {
         // ------------------------------------------------------------------------------
-        // the aim of this part is to manage the being moved task
-        // It rounds the date and then adjusts it to working dates
+        // The aim of this part is to manage the being moved task
+        // Returns unrounded task for smooth drag preview
 
         if (changeInProgress.originalTask === currentOriginalTask) {
-          const roundedTask = roundTaskDates(
-            changeInProgress.changedTask,
-            roundDate,
-            changeInProgress.action,
-            dateMoveStep
-          );
-          const roundTaskIsDifferentFromOriginal =
-            roundedTask.start != currentOriginalTask.start ||
-            roundedTask.end != currentOriginalTask.end;
-          if (isAdjustToWorkingDates && roundTaskIsDifferentFromOriginal) {
-            return adjustTaskToWorkingDates({
-              action: changeInProgress.action,
-              changedTask: roundedTask,
-              originalTask: currentOriginalTask,
-              roundDate,
-            });
-          }
-
-          return roundedTask;
+          // Return unrounded task for smooth visual preview during drag
+          // Date rounding is applied on drop (mouseup) in use-task-drag.ts
+          return changeInProgress.changedTask;
         }
 
         // ------------------------------------------------------------------------------
@@ -99,31 +63,15 @@ export const useGetTaskCurrentState = ({
         ) {
           const { tsDiff } = changeInProgress;
 
+          // Return unrounded moved task for smooth visual preview during drag
+          // Date rounding is applied on drop (mouseup) in use-task-drag.ts
           const movedTask: Task = {
             ...currentOriginalTask,
             end: addMilliseconds(currentOriginalTask.end, tsDiff),
             start: addMilliseconds(currentOriginalTask.start, tsDiff),
           };
 
-          const roundedTask = roundTaskDates(
-            movedTask,
-            roundDate,
-            changeInProgress.action,
-            dateMoveStep
-          );
-          const roundTaskIsDifferentFromOriginal =
-            roundedTask.start != currentOriginalTask.start ||
-            roundedTask.end != currentOriginalTask.end;
-          if (isAdjustToWorkingDates && roundTaskIsDifferentFromOriginal) {
-            return adjustTaskToWorkingDates({
-              action: changeInProgress.action,
-              changedTask: roundedTask,
-              originalTask: currentOriginalTask,
-              roundDate,
-            });
-          }
-
-          return roundedTask;
+          return movedTask;
         }
 
         // ------------------------------------------------------------------------------
@@ -185,13 +133,9 @@ export const useGetTaskCurrentState = ({
       return currentOriginalTask;
     },
     [
-      adjustTaskToWorkingDates,
       changeInProgress,
-      isAdjustToWorkingDates,
       isMoveChildsWithParent,
       isUpdateDisabledParentsOnChange,
-      mapTaskToCoordinates,
-      roundDate,
       tasksMap,
     ]
   );

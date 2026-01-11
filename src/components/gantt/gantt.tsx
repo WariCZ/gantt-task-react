@@ -2249,15 +2249,10 @@ export const Gantt: React.FC<GanttProps> = ({
 
   // Compute the task coordinates used to display the task
   const getTaskCurrentState = useGetTaskCurrentState({
-    adjustTaskToWorkingDates,
     changeInProgress,
-    isAdjustToWorkingDates,
     isMoveChildsWithParent,
     isUpdateDisabledParentsOnChange,
-    mapTaskToCoordinates,
-    roundDate,
     tasksMap,
-    dateMoveStep,
   });
 
   const getTaskCoordinates = useCallback(
