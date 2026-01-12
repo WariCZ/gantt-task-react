@@ -23,6 +23,7 @@ export const Bar: React.FC<
   hasChildren,
   isCritical,
   isDateChangeable,
+  isDragging,
   isProgressChangeable,
   isSelected,
   onTaskEventStart,
@@ -116,9 +117,11 @@ export const Bar: React.FC<
     );
   }
 
+  const wrapperClassName = `${styles.barWrapper} ${stylesRelationHandle.barRelationHandleWrapper}${isDragging ? ` ${styles.barWrapperDragging} ${stylesRelationHandle.barRelationHandleWrapperDragging}` : ""}`;
+
   return (
     <g
-      className={`${styles.barWrapper} ${stylesRelationHandle.barRelationHandleWrapper}`}
+      className={wrapperClassName}
       tabIndex={0}
     >
       {barDisplay}

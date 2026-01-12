@@ -19,6 +19,13 @@
   fill: #a2a2a2;
 }
 
+/* Keep handles visible and in hover state when THIS specific bar is being dragged */
+.barWrapperDragging .barHandle {
+  visibility: visible;
+  opacity: 1;
+  fill: #a2a2a2;
+}
+
 .barBackground {
   user-select: none;
   stroke-width: 0;

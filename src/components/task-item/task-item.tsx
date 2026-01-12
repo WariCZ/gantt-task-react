@@ -33,6 +33,7 @@ export type TaskItemProps = {
   getTaskGlobalIndexByRef: (task: Task) => number;
   hasChildren: boolean;
   hasDependencyWarning: boolean;
+  isDragging?: boolean;
   progressWidth: number;
   progressX: number;
   selectTaskOnMouseDown: (taskId: string, event: MouseEvent) => void;
@@ -89,6 +90,7 @@ const TaskItemInner: React.FC<TaskItemProps> = props => {
     hasDependencyWarning,
     isDateChangeable,
     isDelete,
+    isDragging = false,
     isSelected,
     onClick = undefined,
     onDoubleClick = undefined,
@@ -299,6 +301,7 @@ const TaskItemInner: React.FC<TaskItemProps> = props => {
         <BarSmall
           {...props}
           colorStyles={styles}
+          isDragging={isDragging}
           onTaskEventStart={onTaskEventStart}
         >
           {relationhandles}
@@ -310,12 +313,14 @@ const TaskItemInner: React.FC<TaskItemProps> = props => {
           {...props}
           onTaskEventStart={onTaskEventStart}
           colorStyles={styles}
+          isDragging={isDragging}
         >
           {relationhandles}
         </Bar>
       );
   }, [
     handleWidth,
+    isDragging,
     isSelected,
     outOfParentWarnings,
     props,

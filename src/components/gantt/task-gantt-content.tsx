@@ -131,6 +131,8 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
   taskHalfHeight,
   visibleTasksMirror,
 }) => {
+  const draggingTaskId = changeInProgress?.changedTask?.id ?? null;
+
   const [renderedTasks, renderedArrows, renderedSelectedTasks] = useMemo(() => {
     if (!renderedRowIndexes) {
       return [null, null, null];
@@ -206,6 +208,8 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
         x2: taskX2,
       } = getTaskCoordinates(task);
 
+      const isDragging = draggingTaskId === taskId;
+
       tasksRes.push(
         <svg
           id={task.id}
@@ -227,6 +231,7 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
                   )
                 : false
             }
+            isDragging={isDragging}
             progressWidth={progressWidth}
             progressX={rtl ? innerX2 : innerX1}
             selectTaskOnMouseDown={selectTaskOnMouseDown}
@@ -444,6 +449,7 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
     colorStyles,
     dependencyMap,
     dependentMap,
+    draggingTaskId,
     fullRowHeight,
     ganttRelationEvent,
     getTaskCoordinates,

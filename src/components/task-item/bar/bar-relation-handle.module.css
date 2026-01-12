@@ -12,3 +12,9 @@
 .barRelationHandle:hover {
   fill: #a2a2a2;
 }
+
+/* Keep relation handles visible during drag/resize operations */
+.barRelationHandleWrapperDragging .barRelationHandle {
+  opacity: 1;
+  fill: #a2a2a2;
+}
