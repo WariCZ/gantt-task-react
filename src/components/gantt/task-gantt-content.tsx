@@ -3,6 +3,7 @@ import type { MouseEvent, ReactNode } from "react";
 
 import {
   BarMoveAction,
+  ChangeInProgress,
   ChildByLevelMap,
   ChildOutOfParentWarnings,
   ColorStyles,
@@ -23,6 +24,7 @@ import {
 } from "../../types/public-types";
 import { Arrow } from "../other/arrow";
 import { RelationLine } from "../other/relation-line";
+import { DragGuideLines } from "../other/drag-guide-lines";
 import { TaskItem } from "../task-item/task-item";
 import { GanttRelationEvent } from "../../types/gantt-task-actions";
 import { checkHasChildren } from "../../helpers/check-has-children";
@@ -33,6 +35,7 @@ export type TaskGanttContentProps = {
   authorizedRelations: RelationKind[];
   additionalLeftSpace: number;
   additionalRightSpace: number;
+  changeInProgress: ChangeInProgress | null;
   childOutOfParentWarnings: ChildOutOfParentWarnings | null;
   childTasksMap: ChildByLevelMap;
   colorStyles: ColorStyles;
@@ -46,6 +49,7 @@ export type TaskGanttContentProps = {
   fontFamily: string;
   fontSize: string;
   fullRowHeight: number;
+  ganttFullHeight: number;
   ganttRelationEvent: GanttRelationEvent | null;
   getTaskCoordinates: (task: Task) => TaskCoordinates;
   getTaskGlobalIndexByRef: (task: Task) => number;
@@ -88,6 +92,7 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
   authorizedRelations,
   additionalLeftSpace,
   additionalRightSpace,
+  changeInProgress,
   childOutOfParentWarnings,
   childTasksMap,
   colorStyles,
@@ -101,6 +106,7 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
   fontFamily,
   fontSize,
   fullRowHeight,
+  ganttFullHeight,
   ganttRelationEvent,
   getTaskCoordinates,
   getTaskGlobalIndexByRef,
@@ -463,6 +469,12 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
       <g className="bar" fontFamily={fontFamily} fontSize={fontSize}>
         {renderedTasks}
       </g>
+
+      <DragGuideLines
+        changeInProgress={changeInProgress}
+        fullHeight={ganttFullHeight}
+        additionalLeftSpace={additionalLeftSpace}
+      />
 
       {ganttRelationEvent && (
         <RelationLine

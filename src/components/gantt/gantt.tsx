@@ -1165,7 +1165,7 @@ export const Gantt: React.FC<GanttProps> = ({
 
   const handleAddTask = useCallback(
     (parent?: Task) => {
-      // если parent не передан ИЛИ его нет в текущем списке — это добавление корня
+      // if parent not passed OR not in the current list - this is adding a root
       const isRootAdd =
         !parent ||
         !tasks.some(
@@ -1177,12 +1177,12 @@ export const Gantt: React.FC<GanttProps> = ({
       if (onAddTaskClick) {
         onAddTaskClick(parent as any, (newTask: TaskOrEmpty) => {
           if (isRootAdd) {
-            // корневая вставка: просто дописываем в конец
+            // root insertion: just append to the end
             if (onChangeTasks && newTask && newTask.type !== "empty") {
               const next = [...tasks, newTask as Task];
               onChangeTasks(next, { type: "add_root" });
             }
-            // ничего дальше не считаем
+            // nothing further to calculate
             return;
           }
 
@@ -2395,6 +2395,7 @@ export const Gantt: React.FC<GanttProps> = ({
       authorizedRelations,
       additionalLeftSpace,
       additionalRightSpace,
+      changeInProgress,
       childOutOfParentWarnings,
       childTasksMap,
       colorStyles,
@@ -2408,6 +2409,7 @@ export const Gantt: React.FC<GanttProps> = ({
       fontFamily,
       fontSize,
       fullRowHeight,
+      ganttFullHeight,
       ganttRelationEvent,
       getTaskCoordinates,
       getTaskGlobalIndexByRef,
@@ -2441,6 +2443,7 @@ export const Gantt: React.FC<GanttProps> = ({
     [
       additionalLeftSpace,
       additionalRightSpace,
+      changeInProgress,
       checkIsHoliday,
       childOutOfParentWarnings,
       childTasksMap,
@@ -2456,6 +2459,7 @@ export const Gantt: React.FC<GanttProps> = ({
       fontFamily,
       fontSize,
       fullRowHeight,
+      ganttFullHeight,
       ganttRelationEvent,
       getDate,
       getTaskCoordinates,
