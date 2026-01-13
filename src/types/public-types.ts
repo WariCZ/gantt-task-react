@@ -196,12 +196,14 @@ export interface Task {
   parent?: string;
   dependencies?: Dependency[];
   hideChildren?: boolean;
+  hasChildren?: boolean;
   displayOrder?: number;
   comparisonLevel?: number;
   description?: JSON | string;
   updatedTime?: number;
   priority?: number;
   colors?: PartialColorStyles;
+  _invalidDate?: string;
 }
 
 export interface EmptyTask {

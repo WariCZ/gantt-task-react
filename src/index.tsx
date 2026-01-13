@@ -13,5 +13,7 @@ export * from "./context-menu-options";
 
 export * from "./constants";
 
+export { getAllParents } from "./helpers/get-all-parents";
+
 export { ViewMode } from "./types/public-types";
 export * from "./types/public-types";

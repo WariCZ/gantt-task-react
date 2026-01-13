@@ -51,6 +51,7 @@ import { getCriticalPath } from "../../helpers/get-critical-path";
 import { getMapTaskToNestedIndex } from "../../helpers/get-map-task-to-nested-index";
 import { collectVisibleTasks } from "../../helpers/collect-visible-tasks";
 import { getTaskToHasDependencyWarningMap } from "../../helpers/get-task-to-has-dependency-warning-map";
+import { getAllParents } from "../../helpers/get-all-parents";
 
 import { getChangeTaskMetadata } from "../../helpers/get-change-task-metadata";
 import { useCreateRelation } from "./use-create-relation";
@@ -1355,56 +1356,6 @@ export const Gantt: React.FC<GanttProps> = ({
 
     return newItems;
   };
-
-  const getAllParents = useCallback(
-    (items: Task[], childId: string): Task[] => {
-      const byId = new Map(items.map(t => [t.id, t]));
-      const children = new Map<string, Task[]>();
-
-      // indexujeme děti podle parent id
-      for (const t of items) {
-        if (t.parent) {
-          if (!children.has(t.parent)) children.set(t.parent, []);
-          children.get(t.parent)!.push(t);
-        }
-      }
-
-      // 🔼 najdeme všechny rodiče
-      const parents: Task[] = [];
-      let current = byId.get(childId);
-      while (current && current.parent) {
-        const parent = byId.get(current.parent);
-        if (!parent) break;
-        parents.push(parent);
-        current = parent;
-      }
-
-      // 🔽 rekurzivně najdeme všechny potomky
-      const descendants: Task[] = [];
-      const collectChildren = (id: string) => {
-        const subs = children.get(id);
-        if (!subs) return;
-        for (const c of subs) {
-          descendants.push(c);
-          collectChildren(c.id);
-        }
-      };
-
-      for (const p of parents) {
-        collectChildren(p.id);
-      }
-
-      // výsledek = původní child + parenti + jejich childi
-      const result = new Map<string, Task>();
-      const start = byId.get(childId);
-      if (start) result.set(start.id, start);
-      for (const p of parents) result.set(p.id, p);
-      for (const c of descendants) result.set(c.id, c);
-
-      return Array.from(result.values());
-    },
-    []
-  );
 
   const onDateChange = useCallback(
     (action: BarMoveAction, changedTask: Task, originalTask: Task) => {
