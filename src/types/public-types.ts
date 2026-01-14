@@ -627,6 +627,8 @@ export interface TaskDependencyContextualPaletteProps {
 
 export type DateExtremity = "startOfTask" | "endOfTask";
 
+export type AllowedTypes = "project" | "task";
+
 export interface GanttProps extends EventOption, DisplayOption, StylingOption {
   /**
    * Can be used to compare multiple graphs. This prop is the number of graps being compared
@@ -644,7 +646,7 @@ export interface GanttProps extends EventOption, DisplayOption, StylingOption {
   isAdjustToWorkingDates?: boolean;
   tasks: readonly TaskOrEmpty[];
   readOnly?: boolean;
-  allowedTypesForFitMove?: ("project" | "task")[];
+  allowedTypesForFitMove?: readonly AllowedTypes[];
   style?: React.CSSProperties;
   initDate?: Date;
   fitProgressToParent?: boolean;

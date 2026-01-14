@@ -4,7 +4,7 @@ import { RefObject } from "react";
 import { SCROLL_STEP } from "../../constants";
 
 import { handleTaskBySVGMouseEvent } from "../../helpers/bar-helper";
-
+import { constrainTaskToChildren } from "../../helpers/constrain-task-to-children";
 import { getTaskCoordinates } from "../../helpers/get-task-coordinates";
 import { roundTaskDates } from "../../helpers/round-task-dates";
 
@@ -20,6 +20,7 @@ import {
   DateExtremity,
   BarMoveAction,
   GanttDateRounding,
+  AllowedTypes,
 } from "../../types/public-types";
 
 const SCROLL_DELAY = 25;
@@ -199,6 +200,7 @@ const getNextTsDiff = (
 };
 
 type UseTaskDragParams = {
+  allowedTypesForFitMove: readonly AllowedTypes[];
   childTasksMap: ChildByLevelMap;
   dependentMap: DependentMap;
   ganttSVGRef: RefObject<SVGSVGElement>;
@@ -229,6 +231,7 @@ type UseTaskDragParams = {
 };
 
 export const useTaskDrag = ({
+  allowedTypesForFitMove,
   childTasksMap,
   dependentMap,
   ganttSVGRef,
@@ -628,7 +631,17 @@ export const useTaskDrag = ({
         dateMoveStep
       );
 
-      onDateChange(action, roundedChangedTask, task);
+      // Clamp parent task dates to child boundaries
+      // This ensures a parent cannot be resized smaller than its children
+      const clampedTask = constrainTaskToChildren(
+        roundedChangedTask,
+        action,
+        childTasksMap,
+        rtl,
+        allowedTypesForFitMove
+      );
+
+      onDateChange(action, clampedTask, task);
     };
 
     svgNode.addEventListener("mousemove", handleMouseMove);

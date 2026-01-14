@@ -51,6 +51,7 @@ export type TaskGanttContentProps = {
   fullRowHeight: number;
   ganttFullHeight: number;
   ganttRelationEvent: GanttRelationEvent | null;
+  gridHeight: number;
   getTaskCoordinates: (task: Task) => TaskCoordinates;
   getTaskGlobalIndexByRef: (task: Task) => number;
   handleBarRelationStart: (target: DateExtremity, task: Task) => void;
@@ -106,8 +107,8 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
   fontFamily,
   fontSize,
   fullRowHeight,
-  ganttFullHeight,
   ganttRelationEvent,
+  gridHeight,
   getTaskCoordinates,
   getTaskGlobalIndexByRef,
   handleBarRelationStart,
@@ -478,7 +479,7 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
 
       <DragGuideLines
         changeInProgress={changeInProgress}
-        fullHeight={ganttFullHeight}
+        fullHeight={gridHeight}
         additionalLeftSpace={additionalLeftSpace}
       />
 

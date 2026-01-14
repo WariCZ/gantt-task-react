@@ -52,6 +52,7 @@ import { getMapTaskToNestedIndex } from "../../helpers/get-map-task-to-nested-in
 import { collectVisibleTasks } from "../../helpers/collect-visible-tasks";
 import { getTaskToHasDependencyWarningMap } from "../../helpers/get-task-to-has-dependency-warning-map";
 import { getAllParents } from "../../helpers/get-all-parents";
+import { constrainTaskToChildren } from "../../helpers/constrain-task-to-children";
 
 import { getChangeTaskMetadata } from "../../helpers/get-change-task-metadata";
 import { useCreateRelation } from "./use-create-relation";
@@ -239,11 +240,11 @@ export const Gantt: React.FC<GanttProps> = ({
   viewMode = ViewMode.Day,
   cascadeDependencies = true,
   readOnly = false,
-  allowedTypesForFitMove = ["project"],
+  allowedTypesForFitMove = ["project", "task"],
   style,
   initDate,
   fitProgressToParent,
-  fitStartEndToParent,
+  fitStartEndToParent = true,
   dropRules,
 }) => {
   const ganttSVGRef = useRef<SVGSVGElement>(null);
@@ -1239,7 +1240,7 @@ export const Gantt: React.FC<GanttProps> = ({
   }, [distances, effectiveStartDate, timeStep, viewMode]);
 
   const collectCascadeSet = useCallback(
-    (root: Task): Task[] => {
+    (root: Task, action: BarMoveAction): Task[] => {
       const byId = new Map<string, Task>();
       tasks.forEach(t => {
         if (t.type !== "empty") byId.set(t.id, t as Task);
@@ -1260,7 +1261,11 @@ export const Gantt: React.FC<GanttProps> = ({
       const res: Task[] = [];
       const visited = new Set<string>();
 
-      const add = (t: Task) => {
+      // For resize operations (start/end), we need to track the root task's ID
+      const isResizeAction = action === "start" || action === "end";
+      const rootTaskId = root.id;
+
+      const add = (t: Task, skipChildren: boolean = false) => {
         if (!t || visited.has(t.id)) return;
         visited.add(t.id);
         res.push(t);
@@ -1270,43 +1275,55 @@ export const Gantt: React.FC<GanttProps> = ({
         const children = (byLevel?.get(t.id) ?? []).filter(
           (c): c is Task => c.type !== "empty"
         );
-        children.forEach(add);
+
+        // Skip children of the ROOT task when resizing, but include children
+        // of dependent tasks that get cascaded
+        const shouldSkipChildren =
+          skipChildren || (isResizeAction && t.id === rootTaskId);
+
+        if (!shouldSkipChildren) {
+          children.forEach(child => add(child, false));
+        }
 
         const nextIds = dependents.get(t.id) ?? [];
         nextIds.forEach(id => {
           const n = byId.get(id);
-          if (n) add(n);
+          if (n) add(n, false);
         });
       };
 
-      add(root);
+      // Start with the root task, marking that we should skip its children if resizing
+      add(root, isResizeAction);
       return res;
     },
     [tasks, childTasksMap]
   );
 
-  const fitParentsToChildren = (items: Task[]): Task[] => {
-    // map id -> task
+  // Expand parents ONLY when child exceeds their boundaries.
+  const expandParentsToFitChildren = (items: Task[]): Task[] => {
     const byId = new Map(items.map(t => [t.id, t]));
 
     // map parentId -> children
-    const children = new Map<string, string[]>();
+    const childrenMap = new Map<string, string[]>();
     for (const t of items) {
       if (t.parent) {
-        const arr = children.get(t.parent) ?? [];
+        const arr = childrenMap.get(t.parent) ?? [];
         arr.push(t.id);
-        children.set(t.parent, arr);
+        childrenMap.set(t.parent, arr);
       }
     }
 
-    // cache výsledků, aby se každý uzel počítal jen jednou
+    // Calculate min/max bounds from all descendants (recursive)
     const boundsCache = new Map<string, { min: number; max: number }>();
 
-    // 🔁 rekurzivní výpočet hranic
-    const computeBounds = (id: string): { min: number; max: number } | null => {
-      const subs = children.get(id);
+    const computeChildBounds = (
+      id: string
+    ): { min: number; max: number } | null => {
+      if (boundsCache.has(id)) return boundsCache.get(id)!;
 
-      // leaf → použijeme jeho vlastní range
+      const subs = childrenMap.get(id);
+
+      // Leaf node - return its own bounds
       if (!subs || subs.length === 0) {
         const t = byId.get(id);
         if (!t) return null;
@@ -1315,56 +1332,79 @@ export const Gantt: React.FC<GanttProps> = ({
         return range;
       }
 
-      let min = Infinity;
-      let max = -Infinity;
-      let found = false;
+      // We need to include the task's own dates because if this task was
+      // resized beyond its children, we still want to capture that extension
+      const t = byId.get(id);
+      if (!t) return null;
 
+      // Start with task's own bounds
+      let min = t.start.getTime();
+      let max = t.end.getTime();
+
+      // Extend with children's bounds
       for (const cid of subs) {
-        const cb = boundsCache.get(cid) ?? computeBounds(cid);
+        const cb = computeChildBounds(cid);
         if (cb) {
-          found = true;
           if (cb.min < min) min = cb.min;
           if (cb.max > max) max = cb.max;
         }
       }
-
-      if (!found) return null;
 
       const result = { min, max };
       boundsCache.set(id, result);
       return result;
     };
 
-    // nejdřív najdeme všechny rooty (bez parenta)
-    const roots = items.filter(t => !t.parent);
-    for (const root of roots) {
-      computeBounds(root.id);
+    // Compute bounds for all tasks
+    for (const t of items) {
+      computeChildBounds(t.id);
     }
 
-    // vytvoříme nové tasks podle vypočtených hodnot
-    const newItems = items.map(t => {
-      const bounds = boundsCache.get(t.id);
-      if (
-        bounds &&
-        allowedTypesForFitMove.includes(t.type as any) &&
-        (t.start.getTime() !== bounds.min || t.end.getTime() !== bounds.max)
-      ) {
-        return { ...t, start: new Date(bounds.min), end: new Date(bounds.max) };
-      }
-      return t;
-    });
+    // Only EXPAND parents, never shrink
+    return items.map(t => {
+      // Only process allowed types that have children
+      if (!allowedTypesForFitMove.includes(t.type as any)) return t;
+      if (!childrenMap.has(t.id)) return t;
 
-    return newItems;
+      const childBounds = boundsCache.get(t.id);
+      if (!childBounds) return t;
+
+      const parentStart = t.start.getTime();
+      const parentEnd = t.end.getTime();
+
+      // Only expand if child exceeds parent boundaries
+      const needsExpandStart = childBounds.min < parentStart;
+      const needsExpandEnd = childBounds.max > parentEnd;
+
+      if (!needsExpandStart && !needsExpandEnd) return t;
+
+      return {
+        ...t,
+        start: needsExpandStart ? new Date(childBounds.min) : t.start,
+        end: needsExpandEnd ? new Date(childBounds.max) : t.end,
+      };
+    });
   };
 
   const onDateChange = useCallback(
     (action: BarMoveAction, changedTask: Task, originalTask: Task) => {
-      const adjustedTask = adjustTaskToWorkingDates({
+      let adjustedTask = adjustTaskToWorkingDates({
         action,
         changedTask,
         originalTask,
         roundDate,
       });
+
+      // When resizing a parent, constrain it to fit children bounds
+      if (fitStartEndToParent && (action === "start" || action === "end")) {
+        adjustedTask = constrainTaskToChildren(
+          adjustedTask,
+          action,
+          childTasksMap,
+          rtl,
+          allowedTypesForFitMove
+        );
+      }
 
       // if (action !== "move" || !cascadeDependencies) {
       if (!cascadeDependencies) {
@@ -1391,15 +1431,35 @@ export const Gantt: React.FC<GanttProps> = ({
         );
 
         if (onChangeTasks) {
-          const withSuggestions = prepareSuggestions(suggestions);
+          let withSuggestions = prepareSuggestions(suggestions);
           withSuggestions[taskIndex] = adjustedTask;
+
+          // Auto-expand parents when child exceeds their boundaries
+          if (fitStartEndToParent) {
+            const parents = getAllParents(
+              withSuggestions as Task[],
+              adjustedTask.id
+            );
+            // Explicitly include adjustedTask to ensure updated dates are used
+            const parentItems = expandParentsToFitChildren([
+              ...parents,
+              adjustedTask,
+            ] as Task[]);
+
+            withSuggestions = withSuggestions.map(item => {
+              const updated = parentItems.find(p => p.id === item.id);
+              return updated ? updated : item;
+            }) as TaskOrEmpty[];
+          }
+
           onChangeTasks(withSuggestions, { type: "date_change" });
         }
         return;
       }
 
       const delta = adjustedTask.start.getTime() - originalTask.start.getTime();
-      const cascadeSet = collectCascadeSet(originalTask);
+      // Pass the action to collectCascadeSet so it knows whether to include children
+      const cascadeSet = collectCascadeSet(originalTask, action);
 
       const draft = [...tasks];
       const movedIdxs = new Set<number>();
@@ -1454,7 +1514,7 @@ export const Gantt: React.FC<GanttProps> = ({
         if (fitStartEndToParent) {
           const parents = getAllParents(next as Task[], adjustedTask.id);
 
-          const parentItems = fitParentsToChildren([
+          const parentItems = expandParentsToFitChildren([
             ...parents,
             adjustedTask,
           ] as Task[]);
@@ -1470,13 +1530,17 @@ export const Gantt: React.FC<GanttProps> = ({
     },
     [
       adjustTaskToWorkingDates,
+      allowedTypesForFitMove,
       cascadeDependencies,
+      childTasksMap,
       collectCascadeSet,
+      fitStartEndToParent,
       getMetadata,
       onChangeTasks,
       onDateChangeProp,
       prepareSuggestions,
       roundDate,
+      rtl,
       tasks,
       getTaskGlobalIndexByRef,
     ]
@@ -1610,6 +1674,7 @@ export const Gantt: React.FC<GanttProps> = ({
   );
 
   const [changeInProgress, handleTaskDragStart] = useTaskDrag({
+    allowedTypesForFitMove,
     childTasksMap,
     dependentMap,
     ganttSVGRef,
@@ -2362,6 +2427,7 @@ export const Gantt: React.FC<GanttProps> = ({
       fullRowHeight,
       ganttFullHeight,
       ganttRelationEvent,
+      gridHeight,
       getTaskCoordinates,
       getTaskGlobalIndexByRef,
       handleBarRelationStart,
@@ -2412,6 +2478,7 @@ export const Gantt: React.FC<GanttProps> = ({
       fullRowHeight,
       ganttFullHeight,
       ganttRelationEvent,
+      gridHeight,
       getDate,
       getTaskCoordinates,
       getTaskGlobalIndexByRef,
