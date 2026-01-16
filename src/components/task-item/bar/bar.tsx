@@ -31,7 +31,6 @@ export const Bar: React.FC<
   progressX,
   rtl,
   task,
-  taskHalfHeight,
   taskHeight,
   taskYOffset,
   width,
@@ -85,7 +84,6 @@ export const Bar: React.FC<
         taskYOffset={taskYOffset}
         width={width}
         taskHeight={taskHeight}
-        taskHalfHeight={taskHalfHeight}
         progressX={progressX}
         progressWidth={progressWidth}
         barCornerRadius={barCornerRadius}

@@ -1,8 +1,7 @@
 import React, { useMemo } from "react";
 
 import { ColorStyles, PartialColorStyles } from "../../../types/public-types";
-
-import style from "./bar.module.css";
+import { TaskBarDisplay } from "../shared/task-bar-display";
 
 type BarDisplayProps = {
   barCornerRadius: number;
@@ -11,7 +10,6 @@ type BarDisplayProps = {
   hasChildren: boolean;
   height: number;
   progressWidth: number;
-  /* progress start point */
   progressX: number;
   startMoveFullTask: (clientX: number) => void;
   styles: ColorStyles;
@@ -38,105 +36,71 @@ export const BarDisplay: React.FC<BarDisplayProps> = ({
   x,
   y,
 }) => {
-  const stylesMerged = { ...styles, ...taskColors };
+  const stylesMerged = useMemo(
+    () => ({ ...styles, ...taskColors }),
+    [styles, taskColors]
+  );
 
-  const processColor = useMemo(() => {
+  const progressColor = useMemo(() => {
     if (isCritical) {
       if (hasChildren) {
-        if (isSelected) {
-          return stylesMerged.groupProgressSelectedCriticalColor;
-        }
-
-        return stylesMerged.groupProgressCriticalColor;
+        return isSelected
+          ? stylesMerged.groupProgressSelectedCriticalColor
+          : stylesMerged.groupProgressCriticalColor;
       }
-
-      if (isSelected) {
-        return stylesMerged.barProgressSelectedCriticalColor;
-      }
-
-      return stylesMerged.barProgressCriticalColor;
+      return isSelected
+        ? stylesMerged.barProgressSelectedCriticalColor
+        : stylesMerged.barProgressCriticalColor;
     }
 
     if (hasChildren) {
-      if (isSelected) {
-        return stylesMerged.groupProgressSelectedColor;
-      }
-
-      return stylesMerged.groupProgressColor;
+      return isSelected
+        ? stylesMerged.groupProgressSelectedColor
+        : stylesMerged.groupProgressColor;
     }
 
-    if (isSelected) {
-      return stylesMerged.barProgressSelectedColor;
-    }
-
-    return stylesMerged.barProgressColor;
-  }, [isSelected, isCritical, hasChildren, styles]);
+    return isSelected
+      ? stylesMerged.barProgressSelectedColor
+      : stylesMerged.barProgressColor;
+  }, [isSelected, isCritical, hasChildren, stylesMerged]);
 
   const barColor = useMemo(() => {
     if (isCritical) {
       if (hasChildren) {
-        if (isSelected) {
-          return stylesMerged.groupBackgroundSelectedCriticalColor;
-        }
-
-        return stylesMerged.groupBackgroundCriticalColor;
+        return isSelected
+          ? stylesMerged.groupBackgroundSelectedCriticalColor
+          : stylesMerged.groupBackgroundCriticalColor;
       }
-
-      if (isSelected) {
-        return stylesMerged.barBackgroundSelectedCriticalColor;
-      }
-
-      return stylesMerged.barBackgroundCriticalColor;
+      return isSelected
+        ? stylesMerged.barBackgroundSelectedCriticalColor
+        : stylesMerged.barBackgroundCriticalColor;
     }
 
     if (hasChildren) {
-      if (isSelected) {
-        return stylesMerged.groupBackgroundSelectedColor;
-      }
-
-      return stylesMerged.groupBackgroundColor;
+      return isSelected
+        ? stylesMerged.groupBackgroundSelectedColor
+        : stylesMerged.groupBackgroundColor;
     }
 
-    if (isSelected) {
-      return stylesMerged.barBackgroundSelectedColor;
-    }
-
-    return stylesMerged.barBackgroundColor;
-  }, [isSelected, isCritical, hasChildren, styles]);
+    return isSelected
+      ? stylesMerged.barBackgroundSelectedColor
+      : stylesMerged.barBackgroundColor;
+  }, [isSelected, isCritical, hasChildren, stylesMerged]);
 
   return (
-    <g
-      data-testid={`task-bar-${taskName}`}
-      onMouseDown={e => {
-        startMoveFullTask(e.clientX);
-      }}
-      onTouchStart={e => {
-        const firstTouch = e.touches[0];
-
-        if (firstTouch) {
-          startMoveFullTask(firstTouch.clientX);
-        }
-      }}
-    >
-      <rect
-        x={x}
-        width={width}
-        y={y}
-        height={height}
-        ry={barCornerRadius}
-        rx={barCornerRadius}
-        fill={barColor}
-        className={style.barBackground}
-      />
-      <rect
-        x={progressX}
-        width={progressWidth || 0}
-        y={y}
-        height={height}
-        ry={barCornerRadius}
-        rx={barCornerRadius}
-        fill={processColor}
-      />
-    </g>
+    <TaskBarDisplay
+      type="bar"
+      taskName={taskName}
+      barColor={barColor}
+      progressColor={progressColor}
+      barCornerRadius={barCornerRadius}
+      x={x}
+      y={y}
+      width={width}
+      height={height}
+      progressX={progressX}
+      progressWidth={progressWidth}
+      startMoveFullTask={ startMoveFullTask}
+    />
   );
 };
