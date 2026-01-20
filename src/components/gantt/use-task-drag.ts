@@ -4,7 +4,7 @@ import { RefObject } from "react";
 import { SCROLL_STEP } from "../../constants";
 
 import { handleTaskBySVGMouseEvent } from "../../helpers/bar-helper";
-
+import { constrainTaskToChildren } from "../../helpers/constrain-task-to-children";
 import { getTaskCoordinates } from "../../helpers/get-task-coordinates";
 import { roundTaskDates } from "../../helpers/round-task-dates";
 
@@ -20,10 +20,25 @@ import {
   DateExtremity,
   BarMoveAction,
   GanttDateRounding,
+  AllowedTypes,
 } from "../../types/public-types";
 
 const SCROLL_DELAY = 25;
 const SIDE_SCROLL_AREA_WIDTH = 70;
+
+// Get the appropriate cursor style for each drag action type.
+const getCursorForAction = (action: BarMoveAction): string => {
+  switch (action) {
+    case "move":
+      return "grabbing";
+    case "start":
+    case "end":
+    case "progress":
+      return "ew-resize";
+    default:
+      return "default";
+  }
+};
 
 const getNextCoordinates = (
   task: Task,
@@ -185,6 +200,7 @@ const getNextTsDiff = (
 };
 
 type UseTaskDragParams = {
+  allowedTypesForFitMove: readonly AllowedTypes[];
   childTasksMap: ChildByLevelMap;
   dependentMap: DependentMap;
   ganttSVGRef: RefObject<SVGSVGElement>;
@@ -215,6 +231,7 @@ type UseTaskDragParams = {
 };
 
 export const useTaskDrag = ({
+  allowedTypesForFitMove,
   childTasksMap,
   dependentMap,
   ganttSVGRef,
@@ -297,6 +314,9 @@ export const useTaskDrag = ({
         taskRootNode,
         tsDiff: 0,
       });
+
+      // Uses data attribute on body to override all cursor styles
+      document.body.dataset.ganttDragCursor = getCursorForAction(action);
     },
     [changeInProgress, ganttSVGRef, mapTaskToCoordinates, svgWidth]
   );
@@ -576,6 +596,9 @@ export const useTaskDrag = ({
         return;
       }
 
+      // Reset cursor back to default when drag ends
+      delete document.body.dataset.ganttDragCursor;
+
       event.preventDefault();
 
       const { action, originalTask: task } = changeInProgressLatest;
@@ -608,7 +631,17 @@ export const useTaskDrag = ({
         dateMoveStep
       );
 
-      onDateChange(action, roundedChangedTask, task);
+      // Clamp parent task dates to child boundaries
+      // This ensures a parent cannot be resized smaller than its children
+      const clampedTask = constrainTaskToChildren(
+        roundedChangedTask,
+        action,
+        childTasksMap,
+        rtl,
+        allowedTypesForFitMove
+      );
+
+      onDateChange(action, clampedTask, task);
     };
 
     svgNode.addEventListener("mousemove", handleMouseMove);
@@ -639,6 +672,13 @@ export const useTaskDrag = ({
     timeStep,
     xStep,
   ]);
+
+  // Cleanup: ensure cursor is reset if component unmounts during drag
+  useEffect(() => {
+    return () => {
+      delete document.body.dataset.ganttDragCursor;
+    };
+  }, []);
 
   return [changeInProgress, handleTaskDragStart];
 };

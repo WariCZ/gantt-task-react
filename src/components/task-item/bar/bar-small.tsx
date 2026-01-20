@@ -16,6 +16,7 @@ export const BarSmall: React.FC<
   colorStyles,
   distances: { barCornerRadius, handleWidth },
   hasChildren,
+  isDragging,
   isSelected,
   isCritical,
   isDateChangeable,
@@ -41,9 +42,11 @@ export const BarSmall: React.FC<
     [onTaskEventStart]
   );
 
+  const wrapperClassName = `${styles.barWrapper} ${stylesRelationHandle.barRelationHandleWrapper}${isDragging ? ` ${styles.barWrapperDragging} ${stylesRelationHandle.barRelationHandleWrapperDragging}` : ""}`;
+
   return (
     <g
-      className={`${styles.barWrapper} ${stylesRelationHandle.barRelationHandleWrapper}`}
+      className={wrapperClassName}
       tabIndex={0}
     >
       <BarDisplay

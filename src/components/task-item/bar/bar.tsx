@@ -23,6 +23,7 @@ export const Bar: React.FC<
   hasChildren,
   isCritical,
   isDateChangeable,
+  isDragging,
   isProgressChangeable,
   isSelected,
   onTaskEventStart,
@@ -30,7 +31,6 @@ export const Bar: React.FC<
   progressX,
   rtl,
   task,
-  taskHalfHeight,
   taskHeight,
   taskYOffset,
   width,
@@ -84,7 +84,6 @@ export const Bar: React.FC<
         taskYOffset={taskYOffset}
         width={width}
         taskHeight={taskHeight}
-        taskHalfHeight={taskHalfHeight}
         progressX={progressX}
         progressWidth={progressWidth}
         barCornerRadius={barCornerRadius}
@@ -116,9 +115,11 @@ export const Bar: React.FC<
     );
   }
 
+  const wrapperClassName = `${styles.barWrapper} ${stylesRelationHandle.barRelationHandleWrapper}${isDragging ? ` ${styles.barWrapperDragging} ${stylesRelationHandle.barRelationHandleWrapperDragging}` : ""}`;
+
   return (
     <g
-      className={`${styles.barWrapper} ${stylesRelationHandle.barRelationHandleWrapper}`}
+      className={wrapperClassName}
       tabIndex={0}
     >
       {barDisplay}

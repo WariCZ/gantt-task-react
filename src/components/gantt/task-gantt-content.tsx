@@ -3,6 +3,7 @@ import type { MouseEvent, ReactNode } from "react";
 
 import {
   BarMoveAction,
+  ChangeInProgress,
   ChildByLevelMap,
   ChildOutOfParentWarnings,
   ColorStyles,
@@ -23,6 +24,7 @@ import {
 } from "../../types/public-types";
 import { Arrow } from "../other/arrow";
 import { RelationLine } from "../other/relation-line";
+import { DragGuideLines } from "../other/drag-guide-lines";
 import { TaskItem } from "../task-item/task-item";
 import { GanttRelationEvent } from "../../types/gantt-task-actions";
 import { checkHasChildren } from "../../helpers/check-has-children";
@@ -33,6 +35,7 @@ export type TaskGanttContentProps = {
   authorizedRelations: RelationKind[];
   additionalLeftSpace: number;
   additionalRightSpace: number;
+  changeInProgress: ChangeInProgress | null;
   childOutOfParentWarnings: ChildOutOfParentWarnings | null;
   childTasksMap: ChildByLevelMap;
   colorStyles: ColorStyles;
@@ -46,7 +49,9 @@ export type TaskGanttContentProps = {
   fontFamily: string;
   fontSize: string;
   fullRowHeight: number;
+  ganttFullHeight: number;
   ganttRelationEvent: GanttRelationEvent | null;
+  gridHeight: number;
   getTaskCoordinates: (task: Task) => TaskCoordinates;
   getTaskGlobalIndexByRef: (task: Task) => number;
   handleBarRelationStart: (target: DateExtremity, task: Task) => void;
@@ -88,6 +93,7 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
   authorizedRelations,
   additionalLeftSpace,
   additionalRightSpace,
+  changeInProgress,
   childOutOfParentWarnings,
   childTasksMap,
   colorStyles,
@@ -102,6 +108,7 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
   fontSize,
   fullRowHeight,
   ganttRelationEvent,
+  gridHeight,
   getTaskCoordinates,
   getTaskGlobalIndexByRef,
   handleBarRelationStart,
@@ -125,6 +132,8 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
   taskHalfHeight,
   visibleTasksMirror,
 }) => {
+  const draggingTaskId = changeInProgress?.changedTask?.id ?? null;
+
   const [renderedTasks, renderedArrows, renderedSelectedTasks] = useMemo(() => {
     if (!renderedRowIndexes) {
       return [null, null, null];
@@ -200,6 +209,8 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
         x2: taskX2,
       } = getTaskCoordinates(task);
 
+      const isDragging = draggingTaskId === taskId;
+
       tasksRes.push(
         <svg
           id={task.id}
@@ -221,6 +232,7 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
                   )
                 : false
             }
+            isDragging={isDragging}
             progressWidth={progressWidth}
             progressX={rtl ? innerX2 : innerX1}
             selectTaskOnMouseDown={selectTaskOnMouseDown}
@@ -438,6 +450,7 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
     colorStyles,
     dependencyMap,
     dependentMap,
+    draggingTaskId,
     fullRowHeight,
     ganttRelationEvent,
     getTaskCoordinates,
@@ -463,6 +476,12 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
       <g className="bar" fontFamily={fontFamily} fontSize={fontSize}>
         {renderedTasks}
       </g>
+
+      <DragGuideLines
+        changeInProgress={changeInProgress}
+        fullHeight={gridHeight}
+        additionalLeftSpace={additionalLeftSpace}
+      />
 
       {ganttRelationEvent && (
         <RelationLine
