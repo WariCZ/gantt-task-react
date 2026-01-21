@@ -614,7 +614,6 @@ export const useTaskDrag = ({
           rtl
         );
 
-      // If nothing changed, clear state and exit early
       if (!isChanged) {
         setChangeInProgress(null);
         return;
