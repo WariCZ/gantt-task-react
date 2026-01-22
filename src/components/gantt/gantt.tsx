@@ -590,11 +590,15 @@ export const Gantt: React.FC<GanttProps> = ({
       viewMode,
       distances.columnWidth
     );
-    setScrollXProgrammatically(dateX);
-  }, [selectedDay]);
+    // Center the selected day in the viewport
+    const viewportWidth = ganttTaskRootRef.current?.clientWidth ?? 0;
+    const centeredX = Math.max(0, dateX - viewportWidth / 2 + distances.columnWidth / 2);
+    setScrollXProgrammatically(centeredX);
+  }, [selectedDay, effectiveStartDate, viewMode, distances.columnWidth, setScrollXProgrammatically]);
 
   useEffect(() => {
-    if (!startDate) return;
+    // Skip if selectedDay is set - its useEffect handles scroll positioning
+    if (!startDate || selectedDay) return;
 
     const dateX = getXCoordinateFromDate(
       startDate,
@@ -603,7 +607,7 @@ export const Gantt: React.FC<GanttProps> = ({
       distances.columnWidth
     );
     setScrollXProgrammatically(dateX - 100);
-  }, [startDate?.getTime()]);
+  }, [startDate?.getTime(), selectedDay]);
 
   useEffect(() => {
     if (!svgClientWidth) return;

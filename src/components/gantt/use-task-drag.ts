@@ -614,13 +614,17 @@ export const useTaskDrag = ({
           rtl
         );
 
-      setChangeInProgress(null);
       if (!isChanged) {
+        setChangeInProgress(null);
         return;
       }
 
       if (action === "progress") {
         onProgressChange(newChangedTask);
+        // Delay clearing state by one frame to allow parent state update to propagate
+        requestAnimationFrame(() => {
+          setChangeInProgress(null);
+        });
         return;
       }
 
@@ -642,6 +646,10 @@ export const useTaskDrag = ({
       );
 
       onDateChange(action, clampedTask, task);
+
+      requestAnimationFrame(() => {
+        setChangeInProgress(null);
+      });
     };
 
     svgNode.addEventListener("mousemove", handleMouseMove);
