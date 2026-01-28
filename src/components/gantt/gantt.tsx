@@ -329,7 +329,6 @@ export const Gantt: React.FC<GanttProps> = ({
       }
     });
 
-    console.log("merged", merged);
     setSortedTasks([...merged].sort(sortTasks));
   }, [tasks]);
 
@@ -1933,7 +1932,6 @@ export const Gantt: React.FC<GanttProps> = ({
         return;
       }
 
-      console.log("handleMoveTasksInside");
       onChangeTooltipTask(null, null);
 
       const { comparisonLevel = 1 } = parent;

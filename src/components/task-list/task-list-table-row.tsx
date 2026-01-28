@@ -97,15 +97,8 @@ const TaskListTableRowInner: React.FC<TaskListTableRowProps> = ({
 
   const onRootMouseDown = useCallback(
     (event: MouseEvent) => {
-      // console.log("DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD");
-      // console.log("event.target", event.target);
-      // console.log("event.button", event.button);
-      // console.log("task", task);
-      // console.log("event", event);
       const target = event.target as HTMLElement;
 
-      console.log("event.target", target.className);
-      // // debugger;
       if (
         target.tagName === "INPUT" ||
         target.tagName === "TEXTAREA" ||
