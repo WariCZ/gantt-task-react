@@ -68,14 +68,9 @@ export const defaultRenderBottomHeader = (
           break;
 
         case ViewMode.Hour:
-          try {
-            return format(date, dateSetup.dateFormats.hourBottomHeaderFormat, {
-              locale: dateSetup.dateLocale,
-            });
-          } catch (e) {
-            debugger;
-            return String("popa");
-          }
+          return format(date, dateSetup.dateFormats.hourBottomHeaderFormat, {
+            locale: dateSetup.dateLocale,
+          });
 
         default:
           throw new Error("Unknown viewMode");
